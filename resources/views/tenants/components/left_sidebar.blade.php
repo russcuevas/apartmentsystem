@@ -1,7 +1,7 @@
 <aside class="sidebar-aside" id="sidebarAside">
     <!-- Sidebar Header with Logo -->
     <div class="sidebar-header">
-        <a href="{{ route('admin.dashboard.page') }}" class="sidebar-logo">
+        <a href="{{ route('tenant.dashboard.page') }}" class="sidebar-logo">
             <div class="logo-icon">
                 <!-- Custom SVG Apartment Building Icon -->
                 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -19,7 +19,7 @@
         <ul class="sidebar-menu">
             <!-- Dashboard Link -->
             <li>
-                <a href="{{ route('admin.dashboard.page') }}" class="menu-item-link active">
+                <a href="{{ route('tenant.dashboard.page') }}" class="menu-item-link active">
                     <span class="menu-item-left">
                         <!-- Dashboard Grid Icon -->
                         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
@@ -33,40 +33,6 @@
                 </a>
             </li>
 
-            <!-- Locations Dropdown Option -->
-            <li class="menu-item-dropdown" id="locationsMenuDropdown">
-                <a class="menu-item-link" id="locationsToggle">
-                    <span class="menu-item-left">
-                        <!-- Location/Map Pin Icon -->
-                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
-                            </path>
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z">
-                            </path>
-                        </svg>
-                        Locations
-                    </span>
-                    <!-- Chevron Dropdown Indicator -->
-                    <svg class="chevron-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                </a>
-
-                <!-- Submenu Locations -->
-                <ul class="dropdown-submenu">
-                    <li><a href="#" class="submenu-link">Tala</a></li>
-                    <li><a href="#" class="submenu-link">Silang</a></li>
-                    <li><a href="#" class="submenu-link">Balai</a></li>
-                    <li><a href="#" class="submenu-link">Bulacan</a></li>
-                    <li><a href="#" class="submenu-link">Maligaya</a></li>
-                    <li><a href="#" class="submenu-link">Parola</a></li>
-                    <li><a href="#" class="submenu-link">Bistek</a></li>
-                </ul>
-            </li>
-
             <!-- Billings Link -->
             <li>
                 <a href="#" class="menu-item-link">
@@ -78,7 +44,7 @@
                                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
                             </path>
                         </svg>
-                        Billings
+                        My Billings
                     </span>
                 </a>
             </li>
@@ -94,7 +60,7 @@
                                 d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z">
                             </path>
                         </svg>
-                        Payments
+                        My Payments
                     </span>
                 </a>
             </li>
@@ -105,8 +71,8 @@
     <div class="sidebar-footer">
         <div class="footer-avatar">A</div>
         <div class="footer-user-info">
-            <span class="footer-user-name">Admin User</span>
-            <span class="footer-user-role">Administrator</span>
+            <span class="footer-user-name">User</span>
+            <span class="footer-user-role">Tenants</span>
         </div>
     </div>
 </aside>

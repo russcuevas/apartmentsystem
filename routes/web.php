@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\auth\AuthController;
 use App\Http\Controllers\admin\AdminDashboardController;
+use App\Http\Controllers\tenant\TenantDashboardController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -20,7 +21,9 @@ Route::get('/', function () {
 });
 
 Route::get('/admin/login', [AuthController::class, 'AdminLoginPage'])->name('admin.login.page');
-Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
-
+Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard.page');
 
 Route::get('/tenant/login', [AuthController::class, 'TenantLoginPage'])->name('tenant.login.page');
+
+
+Route::get('/tenant/dashboard', [TenantDashboardController::class, 'TenantDashboardPage'])->name('tenant.dashboard.page');
