@@ -69,10 +69,10 @@
 
     <!-- Sidebar Footer -->
     <div class="sidebar-footer">
-        <div class="footer-avatar">A</div>
+        <div class="footer-avatar">{{ strtoupper(substr(Auth::guard('tenant')->user()->fullname ?? 'T', 0, 1)) }}</div>
         <div class="footer-user-info">
-            <span class="footer-user-name">User</span>
-            <span class="footer-user-role">Tenants</span>
+            <span class="footer-user-name">{{ Auth::guard('tenant')->user()->fullname ?? 'Tenant User' }}</span>
+            <span class="footer-user-role">Tenant</span>
         </div>
     </div>
 </aside>

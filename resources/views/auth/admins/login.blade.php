@@ -63,7 +63,7 @@
                 @endif
 
                 <!-- Login Form -->
-                <form action="{{ route('admin.login.page') }}" method="POST">
+                <form action="{{ route('admin.login') }}" method="POST">
                     @csrf
 
                     <!-- Email Input -->

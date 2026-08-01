@@ -61,7 +61,7 @@
         @endif
 
         <!-- Login Form -->
-        <form action="{{ route('tenant.login.page') }}" method="POST">
+        <form action="{{ route('tenant.login') }}" method="POST">
             @csrf
 
             <!-- Phone Number Input -->

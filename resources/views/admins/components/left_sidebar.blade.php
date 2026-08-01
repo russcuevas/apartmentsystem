@@ -103,9 +103,9 @@
 
     <!-- Sidebar Footer -->
     <div class="sidebar-footer">
-        <div class="footer-avatar">A</div>
+        <div class="footer-avatar">{{ strtoupper(substr(Auth::guard('admin')->user()->fullname ?? 'A', 0, 1)) }}</div>
         <div class="footer-user-info">
-            <span class="footer-user-name">Admin User</span>
+            <span class="footer-user-name">{{ Auth::guard('admin')->user()->fullname ?? 'Admin User' }}</span>
             <span class="footer-user-role">Administrator</span>
         </div>
     </div>

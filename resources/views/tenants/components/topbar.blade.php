@@ -86,10 +86,10 @@
         <div class="nav-action-wrapper">
             <button class="user-profile-trigger" id="userProfileBtn" aria-label="User Account Options">
                 <div class="footer-avatar"
-                    style="border: 2px solid var(--primary); font-size: 0.95rem; width: 38px; height: 38px;">A</div>
+                    style="border: 2px solid var(--primary); font-size: 0.95rem; width: 38px; height: 38px;">{{ strtoupper(substr(Auth::guard('tenant')->user()->fullname ?? 'T', 0, 1)) }}</div>
                 <div class="profile-info">
-                    <div class="profile-name">User</div>
-                    <div class="profile-role">Tenants</div>
+                    <div class="profile-name">{{ Auth::guard('tenant')->user()->fullname ?? 'Tenant User' }}</div>
+                    <div class="profile-role">Tenant</div>
                 </div>
                 <!-- Dropdown Icon -->
                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
@@ -125,8 +125,8 @@
                     Log out
                 </a>
 
-                <!-- Simulated form submission for logout -->
-                <form id="tenant-logout-form" action="#" method="POST" style="display: none;">
+                <!-- Form submission for logout -->
+                <form id="tenant-logout-form" action="{{ route('tenant.logout') }}" method="POST" style="display: none;">
                     @csrf
                 </form>
             </div>
