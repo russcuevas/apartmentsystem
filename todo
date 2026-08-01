@@ -1,0 +1,89 @@
+# DATABASE RECOMMENDATIONS & SCHEMA DESIGN
+
+Para sa iyong Laravel Apartment Billing System, narito ang aking mga rekomendasyon para sa Database Engine at Table Schema na maaari mong gamitin.
+
+---
+
+## 1. Rekomendasyon sa Database Engine
+
+### Option A: MySQL / MariaDB (Rekomendado para sa Production)
+* **Bakit maganda:** Ito ang default na gamit sa iyong `.env` file (`DB_CONNECTION=mysql`). Standard ito sa Laravel at napakadaling i-deploy online pagdating ng araw.
+* **Kailangan:** Kailangan mo ng lokal na server tulad ng **Laragon**, **XAMPP**, o **WampServer** para mapatakbo ang MySQL database sa iyong computer habang nagde-develop.
+
+### Option B: SQLite (Pinakamadali para sa Development/Pag-aaral)
+* **Bakit maganda:** **Zero Setup!** Hindi mo na kailangan mag-install o mag-start ng XAMPP/Laragon para lang gumana ang database. Ang buong database ay nakaimbak lamang bilang isang simpleng file sa loob ng iyong project (`database/database.sqlite`). Napakabilis gamitin sa umpisa.
+* **Paano i-configure sa Laravel:** 
+  1. Baguhin ang `.env` file at palitan ang DB configuration ng ganito:
+     ```env
+     DB_CONNECTION=sqlite
+     # I-delete o i-comment out ang DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME, DB_PASSWORD
+     ```
+  2. Lumikha ng blangkong file sa iyong project gamit ang path na: `database/database.sqlite`
+
+---
+
+## 2. Table Schema Designs (Pumili ng Isa)
+
+Dahil nabanggit mo na okay lang na magkakasama sa iisang table para mas simple at madaling gamitin, narito ang dalawang opsyon na dinesenyo ko base sa iyong mga guhit at detalye:
+
+### 💡 OPTION 1: Simplified Schema (Pinagsama ang Bills & Payments - Rekomendado para sa Simplicity)
+*Bagay ito kung gusto mo ng mas kaunting tables at mas madaling queries sa Laravel. Ang Rent, Electricity, at Water bills para sa buong buwan ay magkakasama sa iisang row kada Tenant. Hindi mo na kailangan ng hiwalay na `payments` table dahil nakarekord na dito ang payment status.*
+
+#### 📋 `locations` (Mga Lokasyon ng Apartment)
+* `id` (Primary Key)
+* `location_name` (string) - Halimbawa: Tala, Silang, Balagtas, Bulacan, Maligaya, Parola, Bistek
+* `address` (text, nullable)
+* `status` (string) - Active / Inactive
+
+#### 📋 `tenants` (Mga Renta/Upa)
+* `id` (Primary Key)
+* `location_id` (Foreign Key na nakaturo sa `locations.id`)
+* `fullname` (string) - Pangalan ng Nangungupahan (hal. Juan Dela Cruz)
+* `contact_number` (string, nullable)
+* `monthly_rent` (decimal, 8,2) - Standard rent fee ng tenant (hal. 5000.00)
+* `status` (string) - Active / Vacated
+
+#### 📋 `billings` (Pagsingil at Bayad sa Buwan)
+*Dito magkakasama ang bills ng Rent, Kuryente, at Tubig ng tenant para sa partikular na buwan.*
+* `id` (Primary Key)
+* `tenant_id` (Foreign Key na nakaturo sa `tenants.id`)
+* `billing_month` (string) - Halimbawa: "June"
+* `billing_year` (integer) - Halimbawa: 2026
+* `due_date` (date, nullable)
+* `received_by` (string, nullable) - Sino ang kumuha ng bayad (hal. "Junong")
+
+* **Rent Bill Details:**
+  * `rent_amount` (decimal, 8,2) - Hal. 5000.00 (galing sa default rent ng tenant)
+  * `rent_status` (string) - 'Paid' / 'Unpaid'
+  * `rent_paid_date` (date, nullable) - Kailan binayaran (hal. June 30, 2026)
+
+* **Electricity Bill Details:**
+  * `electricity_amount` (decimal, 8,2) - Hal. 2391.51
+  * `electricity_status` (string) - 'Paid' / 'Unpaid'
+  * `electricity_paid_date` (date, nullable)
+
+* **Water Bill Details:**
+  * `water_amount` (decimal, 8,2) - Hal. 311.91
+  * `water_status` (string) - 'Paid' / 'Unpaid'
+  * `water_paid_date` (date, nullable)
+
+---
+
+### 🏛️ OPTION 2: Relational / Normalized Schema (Standard Database Practice)
+*Mas flexible ito kung sa hinaharap ay magdadagdag ka pa ng iba pang uri ng singilin (halimbawa: Internet, Maintenance Fee, Parking). Gumagamit ito ng separate rows kada bill type.*
+
+#### 📋 `locations` (Pareho sa Option 1)
+
+#### 📋 `tenants` (Pareho sa Option 1)
+
+#### 📋 `billings` (Kada Transaksyon/Kada Uri ng Singil)
+* `id` (Primary Key)
+* `tenant_id` (Foreign Key na nakaturo sa `tenants.id`)
+* `billing_month` (string) - June
+* `billing_year` (integer) - 2026
+* `bill_type` (string) - 'Rent' / 'Electricity' / 'Water' (pwedeng madagdagan pa)
+* `amount` (decimal, 8,2)
+* `due_date` (date, nullable)
+* `status` (string) - 'Paid' / 'Unpaid'
+* `paid_date` (date, nullable)
+* `received_by` (string, nullable)
