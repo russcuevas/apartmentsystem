@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apartment Management System</title>
+    <title>LMS Apartment</title>
 
     <!-- Google Fonts: Plus Jakarta Sans for premium typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -108,11 +108,6 @@
                         </svg>
                     </button>
                 </div>
-            </div>
-
-            <!-- Forgot Password -->
-            <div class="form-options">
-                <a href="#" class="forgot-link">Forgot password?</a>
             </div>
 
             <!-- Submit Button -->

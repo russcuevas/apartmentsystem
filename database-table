@@ -27,27 +27,44 @@ start_date
 created_at
 updated_at
 
-tenant_billings
+
+// DONE HERE
+
+tenant_billings_rent
+tenant_id
+billing_month // Dec
+due_date
+rent_amount
+balance
+status  
+
+tenant_billings_electricity
 tenant_id
 billing_month
 due_date
-rent_amount
 electric_amount
-water_amount
-other_charges
-penalty
-total_amount
 balance
-status       // Pending, Partial, Paid
-created_at
-updated_at
+image_receipt
+status
+
+tenant_billings_water
+tenant_id
+billing_month
+due_date
+water_amount
+balance
+image_receipt
+status
 
 tenant_payments
-billing_id
-type -> CASH / GCASH / BANK
-payment_type      // Rent, Electric, Water
+tenant_billings_rent_id
+tenant_billings_electricity_id
+tenant_billings_water_id
+billing_month
 amount
-payment_date
-proof_image
+type -> ECASH / CASH /
+payment_type  // Rent, Electric, Water
+payment_proof
+status -> accepted / decline - if accepted minus the amount to balance else declined display to tenant and must have a button resubmit
 received_by -> nullable
-status -> accepted / decline - if accepted minus the amount to balance
+
