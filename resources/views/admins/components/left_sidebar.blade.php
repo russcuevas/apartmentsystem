@@ -57,13 +57,14 @@
 
                 <!-- Submenu Locations -->
                 <ul class="dropdown-submenu">
-                    <li><a href="#" class="submenu-link">Tala</a></li>
-                    <li><a href="#" class="submenu-link">Silang</a></li>
-                    <li><a href="#" class="submenu-link">Balai</a></li>
-                    <li><a href="#" class="submenu-link">Bulacan</a></li>
-                    <li><a href="#" class="submenu-link">Maligaya</a></li>
-                    <li><a href="#" class="submenu-link">Parola</a></li>
-                    <li><a href="#" class="submenu-link">Bistek</a></li>
+                    @php
+                        $backendLocations = \App\Models\Locations::all();
+                    @endphp
+                    @forelse ($backendLocations as $loc)
+                        <li><a href="#" class="submenu-link">{{ $loc->location_name }}</a></li>
+                    @empty
+                        <li><a href="#" class="submenu-link">No Locations</a></li>
+                    @endforelse
                 </ul>
             </li>
 
