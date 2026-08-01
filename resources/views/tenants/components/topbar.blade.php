@@ -11,7 +11,7 @@
 
     <div class="topbar-right">
         <!-- Notifications Wrapper -->
-        <div class="nav-action-wrapper">
+        {{-- <div class="nav-action-wrapper">
             <button class="nav-action-btn" id="notificationBtn" aria-label="View Notifications">
                 <!-- Bell Icon -->
                 <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
@@ -80,13 +80,14 @@
                     <a href="#" class="dropdown-footer-link">See all alerts</a>
                 </div>
             </div>
-        </div>
+        </div> --}}
 
         <!-- User Profile Wrapper -->
         <div class="nav-action-wrapper">
             <button class="user-profile-trigger" id="userProfileBtn" aria-label="User Account Options">
                 <div class="footer-avatar"
-                    style="border: 2px solid var(--primary); font-size: 0.95rem; width: 38px; height: 38px;">{{ strtoupper(substr(Auth::guard('tenant')->user()->fullname ?? 'T', 0, 1)) }}</div>
+                    style="border: 2px solid var(--primary); font-size: 0.95rem; width: 38px; height: 38px;">
+                    {{ strtoupper(substr(Auth::guard('tenant')->user()->fullname ?? 'T', 0, 1)) }}</div>
                 <div class="profile-info">
                     <div class="profile-name">{{ Auth::guard('tenant')->user()->fullname ?? 'Tenant User' }}</div>
                     <div class="profile-role">Tenant</div>
@@ -126,7 +127,8 @@
                 </a>
 
                 <!-- Form submission for logout -->
-                <form id="tenant-logout-form" action="{{ route('tenant.logout') }}" method="POST" style="display: none;">
+                <form id="tenant-logout-form" action="{{ route('tenant.logout') }}" method="POST"
+                    style="display: none;">
                     @csrf
                 </form>
             </div>

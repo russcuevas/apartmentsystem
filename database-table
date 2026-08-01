@@ -67,4 +67,3 @@ payment_type  // Rent, Electric, Water
 payment_proof
 status -> accepted / decline - if accepted minus the amount to balance else declined display to tenant and must have a button resubmit
 received_by -> nullable
-

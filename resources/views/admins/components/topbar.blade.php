@@ -11,7 +11,7 @@
 
     <div class="topbar-right">
         <!-- Notifications Wrapper -->
-        <div class="nav-action-wrapper">
+        {{-- <div class="nav-action-wrapper">
             <button class="nav-action-btn" id="notificationBtn" aria-label="View Notifications">
                 <!-- Bell Icon -->
                 <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
@@ -80,7 +80,7 @@
                     <a href="#" class="dropdown-footer-link">See all alerts</a>
                 </div>
             </div>
-        </div>
+        </div> --}}
 
         <!-- User Profile Wrapper -->
         <div class="nav-action-wrapper">
