@@ -22,7 +22,7 @@ class AuthController extends Controller
     /**
      * Handle Admin Login
      */
-    public function AdminLogin(Request $request)
+    public function AdminLoginRequest(Request $request)
     {
         $request->validate([
             'email'    => 'required|email',
@@ -33,7 +33,8 @@ class AuthController extends Controller
 
         if (Auth::guard('admin')->attempt($credentials, $request->filled('remember'))) {
             $request->session()->regenerate();
-            return redirect()->route('admin.dashboard.page');
+            $admin = Auth::guard('admin')->user();
+            return redirect()->route('admin.dashboard.page')->with('success', 'Welcome, ' . $admin->fullname);
         }
 
         return back()->withErrors([
@@ -44,13 +45,13 @@ class AuthController extends Controller
     /**
      * Handle Admin Logout
      */
-    public function AdminLogout(Request $request)
+    public function AdminLogoutRequest(Request $request)
     {
         Auth::guard('admin')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('admin.login.page');
+        return redirect()->route('admin.login.page')->with('success', 'Logged out successfully');
     }
 
     /**
@@ -78,7 +79,8 @@ class AuthController extends Controller
 
         if (Auth::guard('tenant')->attempt($credentials, $request->filled('remember'))) {
             $request->session()->regenerate();
-            return redirect()->route('tenant.dashboard.page');
+            $tenant = Auth::guard('tenant')->user();
+            return redirect()->route('tenant.dashboard.page')->with('success', 'Welcome, ' . trim($tenant->fullname));
         }
 
         return back()->withErrors([
@@ -95,6 +97,6 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('tenant.login.page');
+        return redirect()->route('tenant.login.page')->with('success', 'Logged out successfully');
     }
 }

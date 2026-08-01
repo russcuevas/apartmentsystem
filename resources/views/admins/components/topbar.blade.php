@@ -86,7 +86,8 @@
         <div class="nav-action-wrapper">
             <button class="user-profile-trigger" id="userProfileBtn" aria-label="User Account Options">
                 <div class="footer-avatar"
-                    style="border: 2px solid var(--primary); font-size: 0.95rem; width: 38px; height: 38px;">{{ strtoupper(substr(Auth::guard('admin')->user()->fullname ?? 'A', 0, 1)) }}</div>
+                    style="border: 2px solid var(--primary); font-size: 0.95rem; width: 38px; height: 38px;">
+                    {{ strtoupper(substr(Auth::guard('admin')->user()->fullname ?? 'A', 0, 1)) }}</div>
                 <div class="profile-info">
                     <div class="profile-name">{{ Auth::guard('admin')->user()->fullname ?? 'Admin User' }}</div>
                     <div class="profile-role">Administrator</div>
@@ -126,7 +127,8 @@
                 </a>
 
                 <!-- Form submission for logout -->
-                <form id="admin-logout-form" action="{{ route('admin.logout') }}" method="POST" style="display: none;">
+                <form id="admin-logout-form" action="{{ route('admin.logout.request') }}" method="POST"
+                    style="display: none;">
                     @csrf
                 </form>
             </div>

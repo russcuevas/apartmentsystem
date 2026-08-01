@@ -22,12 +22,12 @@ Route::get('/', function () {
 
 // --- ADMIN AUTH ROUTES ---
 Route::get('/admin/login', [AuthController::class, 'AdminLoginPage'])->name('admin.login.page');
-Route::post('/admin/login', [AuthController::class, 'AdminLogin'])->name('admin.login');
-Route::post('/admin/logout', [AuthController::class, 'AdminLogout'])->name('admin.logout');
+Route::post('/admin/login', [AuthController::class, 'AdminLoginRequest'])->name('admin.login.request');
+Route::post('/admin/logout', [AuthController::class, 'AdminLogoutRequest'])->name('admin.logout.request');
 
 // --- ADMIN PROTECTED ROUTES ---
-Route::middleware(['admin'])->prefix('admin')->group(function () {
-    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard.page');
+Route::middleware(['admin'])->group(function () {
+    Route::get('/admin/dashboard', [AdminDashboardController::class, 'AdminDashboardPage'])->name('admin.dashboard.page');
 });
 
 // --- TENANT AUTH ROUTES ---
@@ -36,6 +36,6 @@ Route::post('/tenant/login', [AuthController::class, 'TenantLogin'])->name('tena
 Route::post('/tenant/logout', [AuthController::class, 'TenantLogout'])->name('tenant.logout');
 
 // --- TENANT PROTECTED ROUTES ---
-Route::middleware(['tenant'])->prefix('tenant')->group(function () {
-    Route::get('/dashboard', [TenantDashboardController::class, 'TenantDashboardPage'])->name('tenant.dashboard.page');
+Route::middleware(['tenant'])->group(function () {
+    Route::get('/tenant/dashboard', [TenantDashboardController::class, 'TenantDashboardPage'])->name('tenant.dashboard.page');
 });

@@ -15,7 +15,8 @@
     <!-- Externalized Theme Stylesheets -->
     <link rel="stylesheet" href="{{ asset('auth/admins/style.css') }}">
 
-
+    <!-- Notyf CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
 </head>
 
 <body>
@@ -63,7 +64,7 @@
                 @endif
 
                 <!-- Login Form -->
-                <form action="{{ route('admin.login') }}" method="POST">
+                <form action="{{ route('admin.login.request') }}" method="POST">
                     @csrf
 
                     <!-- Email Input -->
@@ -146,6 +147,25 @@
     </div>
 
     <script src="{{ asset('auth/script.js') }}" defer></script>
-</body>
 
+    <!-- Notyf JS -->
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const notyf = new Notyf({
+                duration: 4000,
+                position: { x: 'right', y: 'top' },
+                dismissible: true
+            });
+
+            @if(session('success'))
+                notyf.success(@json(session('success')));
+            @endif
+
+            @if(session('error'))
+                notyf.error(@json(session('error')));
+            @endif
+        });
+    </script>
+</body>
 </html>
