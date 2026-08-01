@@ -15,4 +15,14 @@ class Tenants extends Authenticatable
         'phone_number',
         'location_id'
     ];
+
+    public function location()
+    {
+        return $this->belongsTo(Locations::class, 'location_id');
+    }
+
+    public function rentInformation()
+    {
+        return $this->hasOne(TenantsRentInformation::class, 'tenant_id');
+    }
 }

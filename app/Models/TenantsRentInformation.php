@@ -15,4 +15,9 @@ class TenantsRentInformation extends Model
         'monthly_rental',
         'start_date',
     ];
+
+    public function tenant()
+    {
+        return $this->belongsTo(Tenants::class, 'tenant_id');
+    }
 }

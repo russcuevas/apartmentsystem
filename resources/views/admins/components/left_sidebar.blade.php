@@ -19,7 +19,8 @@
         <ul class="sidebar-menu">
             <!-- Dashboard Link -->
             <li>
-                <a href="{{ route('admin.dashboard.page') }}" class="menu-item-link active">
+                <a href="{{ route('admin.dashboard.page') }}"
+                    class="menu-item-link {{ request()->routeIs('admin.dashboard.page') ? 'active' : '' }}">
                     <span class="menu-item-left">
                         <!-- Dashboard Grid Icon -->
                         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
@@ -34,7 +35,8 @@
             </li>
 
             <!-- Locations Dropdown Option -->
-            <li class="menu-item-dropdown" id="locationsMenuDropdown">
+            <li class="menu-item-dropdown {{ request()->is('admin/locations/*') ? 'open' : '' }}"
+                id="locationsMenuDropdown">
                 <a class="menu-item-link" id="locationsToggle">
                     <span class="menu-item-left">
                         <!-- Location/Map Pin Icon -->
@@ -61,43 +63,46 @@
                         $backendLocations = \App\Models\Locations::all();
                     @endphp
                     @forelse ($backendLocations as $loc)
-                        <li><a href="#" class="submenu-link">{{ $loc->location_name }}</a></li>
+                        <li
+                            class="location-sub-dropdown {{ request()->is('admin/locations/' . $loc->id . '*') ? 'open' : '' }}">
+                            <a href="javascript:void(0)" class="location-sub-toggle">
+                                <span>{{ $loc->location_name }}</span>
+                                <svg class="chevron-icon-sm" fill="none" stroke="currentColor" stroke-width="2"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </a>
+                            <ul class="location-nested-menu">
+                                <li>
+                                    <a href="{{ route('admin.locations.page', $loc->id) }}"
+                                        class="nested-link {{ request()->is('admin/locations/' . $loc->id) ? 'active' : '' }}">
+                                        Dashboard
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('admin.locations.page', $loc->id) }}#add-tenant"
+                                        class="nested-link">
+                                        Tenants
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('admin.locations.page', $loc->id) }}#rent-billings"
+                                        class="nested-link">
+                                        Billings
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('admin.locations.page', $loc->id) }}#tenant-payments"
+                                        class="nested-link">
+                                        Payments
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
                     @empty
                         <li><a href="#" class="submenu-link">No Locations</a></li>
                     @endforelse
                 </ul>
-            </li>
-
-            <!-- Billings Link -->
-            <li>
-                <a href="#" class="menu-item-link">
-                    <span class="menu-item-left">
-                        <!-- Document/Billing Receipt Icon -->
-                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                            </path>
-                        </svg>
-                        Billings
-                    </span>
-                </a>
-            </li>
-
-            <!-- Payments Link -->
-            <li>
-                <a href="#" class="menu-item-link">
-                    <span class="menu-item-left">
-                        <!-- Credit Card / Payments Icon -->
-                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z">
-                            </path>
-                        </svg>
-                        Payments
-                    </span>
-                </a>
             </li>
         </ul>
     </div>

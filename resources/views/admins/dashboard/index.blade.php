@@ -38,8 +38,6 @@
                 <div style="margin-bottom: 32px;">
                     <h2 style="font-size: 1.6rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px;">
                         Welcome Back, Administrator</h2>
-                    <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 4px;">Monitor tenant status,
-                        track billing cycles, and review payments across all properties.</p>
                 </div>
 
             </main>
@@ -82,6 +80,18 @@
                 });
             }
 
+            // Toggle Sub-location Nested Leaf Menus
+            const locationSubToggles = document.querySelectorAll('.location-sub-toggle');
+            locationSubToggles.forEach(toggle => {
+                toggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const parentLi = this.closest('.location-sub-dropdown');
+                    if (parentLi) {
+                        parentLi.classList.toggle('open');
+                    }
+                });
+            });
+
             // Helper to toggle active visibility of target dropdowns
             function toggleDropdown(btn, dropdown) {
                 if (btn && dropdown) {
@@ -121,18 +131,22 @@
         document.addEventListener('DOMContentLoaded', function() {
             const notyf = new Notyf({
                 duration: 4000,
-                position: { x: 'right', y: 'top' },
+                position: {
+                    x: 'right',
+                    y: 'top'
+                },
                 dismissible: true
             });
 
-            @if(session('success'))
+            @if (session('success'))
                 notyf.success(@json(session('success')));
             @endif
 
-            @if(session('error'))
+            @if (session('error'))
                 notyf.error(@json(session('error')));
             @endif
         });
     </script>
 </body>
+
 </html>

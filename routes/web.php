@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\auth\AuthController;
 use App\Http\Controllers\admin\AdminDashboardController;
+use App\Http\Controllers\admin\LocationsController;
 use App\Http\Controllers\tenant\TenantDashboardController;
 use Illuminate\Support\Facades\Route;
 
@@ -28,6 +29,7 @@ Route::post('/admin/logout', [AuthController::class, 'AdminLogoutRequest'])->nam
 // --- ADMIN PROTECTED ROUTES ---
 Route::middleware(['admin'])->group(function () {
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'AdminDashboardPage'])->name('admin.dashboard.page');
+    Route::get('/admin/locations/{id}', [LocationsController::class, 'LocationsPage'])->name('admin.locations.page');
 });
 
 // --- TENANT AUTH ROUTES ---
