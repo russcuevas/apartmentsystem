@@ -40,7 +40,7 @@ class AdminBillingsController extends Controller
         ];
 
         // 1. Fetch Rent Billings
-        $rentQuery = TenantBillingsRent::with(['tenant.location', 'tenant.rentInformation']);
+        $rentQuery = TenantBillingsRent::with(['tenant.location', 'tenant.rentInformation', 'payments']);
         if ($selectedLocationId) {
             $rentQuery->whereHas('tenant', function ($q) use ($selectedLocationId) {
                 $q->where('location_id', $selectedLocationId);
@@ -54,7 +54,7 @@ class AdminBillingsController extends Controller
         $rentBillings = $rentQuery->get();
 
         // 2. Fetch Electricity Billings
-        $elecQuery = TenantBillingsElectricity::with(['tenant.location', 'tenant.rentInformation']);
+        $elecQuery = TenantBillingsElectricity::with(['tenant.location', 'tenant.rentInformation', 'payments']);
         if ($selectedLocationId) {
             $elecQuery->whereHas('tenant', function ($q) use ($selectedLocationId) {
                 $q->where('location_id', $selectedLocationId);
@@ -68,7 +68,7 @@ class AdminBillingsController extends Controller
         $elecBillings = $elecQuery->get();
 
         // 3. Fetch Water Billings
-        $waterQuery = TenantBillingsWater::with(['tenant.location', 'tenant.rentInformation']);
+        $waterQuery = TenantBillingsWater::with(['tenant.location', 'tenant.rentInformation', 'payments']);
         if ($selectedLocationId) {
             $waterQuery->whereHas('tenant', function ($q) use ($selectedLocationId) {
                 $q->where('location_id', $selectedLocationId);
@@ -108,22 +108,41 @@ class AdminBillingsController extends Controller
 
                 $tenantObj = $rent->tenant ?? $elec->tenant ?? $water->tenant ?? null;
 
-                $rentAmount = (float) ($rent->rent_amount ?? 0);
-                $rentBalance = (float) ($rent->balance ?? 0);
-                $rentStatus = $rent->status ?? 'Unpaid';
+                $isRentPending = $rent && (
+                    strcasecmp($rent->status ?? '', 'Pending') === 0 ||
+                    ($rent->relationLoaded('payments') && $rent->payments->contains('status', 'Pending'))
+                );
+                $isElecPending = $elec && (
+                    strcasecmp($elec->status ?? '', 'Pending') === 0 ||
+                    ($elec->relationLoaded('payments') && $elec->payments->contains('status', 'Pending'))
+                );
+                $isWaterPending = $water && (
+                    strcasecmp($water->status ?? '', 'Pending') === 0 ||
+                    ($water->relationLoaded('payments') && $water->payments->contains('status', 'Pending'))
+                );
 
-                $elecAmount = (float) ($elec->rent_amount ?? 0);
-                $elecBalance = (float) ($elec->balance ?? 0);
-                $elecStatus = $elec->status ?? 'Unpaid';
+                $rentAmount = $isRentPending ? 0 : (float) ($rent->rent_amount ?? 0);
+                $rentBalance = $isRentPending ? 0 : (float) ($rent->balance ?? 0);
+                $rentStatus = $isRentPending ? 'Pending' : ($rent->status ?? 'Unpaid');
 
-                $waterAmount = (float) ($water->rent_amount ?? 0);
-                $waterBalance = (float) ($water->balance ?? 0);
-                $waterStatus = $water->status ?? 'Unpaid';
+                $elecAmount = $isElecPending ? 0 : (float) ($elec->rent_amount ?? 0);
+                $elecBalance = $isElecPending ? 0 : (float) ($elec->balance ?? 0);
+                $elecStatus = $isElecPending ? 'Pending' : ($elec->status ?? 'Unpaid');
+
+                $waterAmount = $isWaterPending ? 0 : (float) ($water->rent_amount ?? 0);
+                $waterBalance = $isWaterPending ? 0 : (float) ($water->balance ?? 0);
+                $waterStatus = $isWaterPending ? 'Pending' : ($water->status ?? 'Unpaid');
+
+                $hasRent = ($rent !== null && $rentAmount > 0 && !$isRentPending);
+                $hasElec = ($elec !== null && $elecAmount > 0 && !$isElecPending);
+                $hasWater = ($water !== null && $waterAmount > 0 && !$isWaterPending);
 
                 $totalAmount = $rentAmount + $elecAmount + $waterAmount;
                 $totalBalance = $rentBalance + $elecBalance + $waterBalance;
 
-                if ($totalBalance <= 0) {
+                if ($totalAmount <= 0) {
+                    $status = 'Pending';
+                } elseif ($totalBalance <= 0) {
                     $status = 'Paid';
                 } elseif ($totalBalance < $totalAmount) {
                     $status = 'Partial';
@@ -144,18 +163,23 @@ class AdminBillingsController extends Controller
                     'water_amount'     => $waterAmount,
                     'water_balance'    => $waterBalance,
                     'water_status'     => $waterStatus,
-                    'has_rent'         => ($rent !== null && $rentAmount > 0),
-                    'has_elec'         => ($elec !== null && $elecAmount > 0),
-                    'has_water'        => ($water !== null && $waterAmount > 0),
+                    'has_rent'         => $hasRent,
+                    'has_elec'         => $hasElec,
+                    'has_water'        => $hasWater,
                     'total_amount'     => $totalAmount,
                     'total_balance'    => $totalBalance,
                     'status'           => $status,
                     'due_date'         => $rent->due_date ?? $elec->due_date ?? $water->due_date ?? null,
                     'proof_of_billing' => $rent->proof_of_billing ?? $elec->proof_of_billing ?? $water->proof_of_billing ?? null,
-                    'elec_proof'       => $elec->proof_of_billing ?? null,
-                    'water_proof'      => $water->proof_of_billing ?? null,
+                    'elec_proof'       => $isElecPending ? null : ($elec->proof_of_billing ?? null),
+                    'water_proof'      => $isWaterPending ? null : ($water->proof_of_billing ?? null),
                 ];
             });
+
+            // Filter out tenants who have no active/non-pending billings in this month
+            $combinedBillings = $combinedBillings->filter(function ($b) {
+                return $b['has_rent'] || $b['has_elec'] || $b['has_water'];
+            })->values();
 
             $totalTenants = $combinedBillings->count();
             $totalAmount = $combinedBillings->sum('total_amount');

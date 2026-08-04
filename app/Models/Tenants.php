@@ -40,4 +40,9 @@ class Tenants extends Authenticatable
     {
         return $this->hasMany(TenantBillingsWater::class, 'tenant_id');
     }
+
+    public function payments()
+    {
+        return $this->hasMany(TenantPayments::class, 'tenant_id');
+    }
 }

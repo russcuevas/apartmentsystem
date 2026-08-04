@@ -6,6 +6,7 @@ use App\Http\Controllers\admin\LocationsController;
 use App\Http\Controllers\admin\TenantsController;
 use App\Http\Controllers\admin\AdminBillingsController;
 use App\Http\Controllers\tenant\TenantDashboardController;
+use App\Http\Controllers\tenant\TenantPaymentsController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -46,4 +47,6 @@ Route::post('/tenant/logout', [AuthController::class, 'TenantLogout'])->name('te
 // --- TENANT PROTECTED ROUTES ---
 Route::middleware(['tenant'])->group(function () {
     Route::get('/tenant/dashboard', [TenantDashboardController::class, 'TenantDashboardPage'])->name('tenant.dashboard.page');
+    Route::get('/tenant/payments', [TenantPaymentsController::class, 'index'])->name('tenant.payments.index');
+    Route::post('/tenant/payments', [TenantPaymentsController::class, 'store'])->name('tenant.payments.store');
 });

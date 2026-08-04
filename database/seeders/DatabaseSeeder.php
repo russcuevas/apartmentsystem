@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             TenantsBillingRentTableSeeder::class,
             TenantsBillingElectrictyTableSeeder::class,
             TenantsBillingWaterTableSeeder::class,
+            TenantsPaymentsTableSeeder::class,
         ]);
     }
 }

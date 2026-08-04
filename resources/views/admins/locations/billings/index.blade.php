@@ -701,19 +701,19 @@
                 $('#breakdownRoom').text(room);
                 $('#breakdownMonth').text(month);
 
-                if (hasRent) {
+                if (hasRent && rentStatus !== 'Pending') {
                     $('#breakdownRentRow').html(`${rent} <span style="font-size: 0.75rem; color: #64748b; margin-left: 6px;">(Bal: ${rentBal} - <strong>${rentStatus}</strong>)</span>`);
                 } else {
                     $('#breakdownRentRow').html('<span style="color: #64748b; font-style: italic; font-weight: 600; font-size: 0.85rem;">No upload by the tenant</span>');
                 }
 
-                if (hasElec) {
+                if (hasElec && elecStatus !== 'Pending') {
                     $('#breakdownElecRow').html(`${elec} <span style="font-size: 0.75rem; color: #64748b; margin-left: 6px;">(Bal: ${elecBal} - <strong>${elecStatus}</strong>)</span>`);
                 } else {
                     $('#breakdownElecRow').html('<span style="color: #64748b; font-style: italic; font-weight: 600; font-size: 0.85rem;">No upload by the tenant</span>');
                 }
 
-                if (hasWater) {
+                if (hasWater && waterStatus !== 'Pending') {
                     $('#breakdownWaterRow').html(`${water} <span style="font-size: 0.75rem; color: #64748b; margin-left: 6px;">(Bal: ${waterBal} - <strong>${waterStatus}</strong>)</span>`);
                 } else {
                     $('#breakdownWaterRow').html('<span style="color: #64748b; font-style: italic; font-weight: 600; font-size: 0.85rem;">No upload by the tenant</span>');
@@ -723,7 +723,7 @@
                 $('#breakdownBalance').text(balance).css('color', balance !== '₱0.00' ? '#ef4444' : '#166534');
                 $('#breakdownStatusPill').attr('class', `status-pill ${statusClass}`).text(status);
 
-                if (elecProof && elecProof !== '') {
+                if (hasElec && elecStatus !== 'Pending' && elecProof && elecProof !== '') {
                     $('#elecProofContainer').html(`
                         <a href="${elecProof}" target="_blank" style="color: var(--primary); font-weight: 700; text-decoration: underline;">
                             View Electricity Bill
@@ -733,7 +733,7 @@
                     $('#elecProofContainer').html('<span style="color: #64748b; font-style: italic;">No document attached</span>');
                 }
 
-                if (waterProof && waterProof !== '') {
+                if (hasWater && waterStatus !== 'Pending' && waterProof && waterProof !== '') {
                     $('#waterProofContainer').html(`
                         <a href="${waterProof}" target="_blank" style="color: var(--primary); font-weight: 700; text-decoration: underline;">
                             View Water Bill

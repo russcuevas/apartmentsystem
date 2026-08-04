@@ -19,7 +19,7 @@
         <ul class="sidebar-menu">
             <!-- Dashboard Link -->
             <li>
-                <a href="{{ route('tenant.dashboard.page') }}" class="menu-item-link active">
+                <a href="{{ route('tenant.dashboard.page') }}" class="menu-item-link {{ request()->routeIs('tenant.dashboard.page') ? 'active' : '' }}">
                     <span class="menu-item-left">
                         <!-- Dashboard Grid Icon -->
                         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
@@ -35,7 +35,7 @@
 
             <!-- Billings Link -->
             <li>
-                <a href="#" class="menu-item-link">
+                <a href="#" class="menu-item-link {{ request()->routeIs('tenant.billings*') ? 'active' : '' }}">
                     <span class="menu-item-left">
                         <!-- Document/Billing Receipt Icon -->
                         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
@@ -51,7 +51,7 @@
 
             <!-- Payments Link -->
             <li>
-                <a href="#" class="menu-item-link">
+                <a href="{{ route('tenant.payments.index') }}" class="menu-item-link {{ request()->routeIs('tenant.payments.index') ? 'active' : '' }}">
                     <span class="menu-item-left">
                         <!-- Credit Card / Payments Icon -->
                         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"

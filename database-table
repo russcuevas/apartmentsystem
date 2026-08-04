@@ -57,6 +57,7 @@ image_receipt
 status
 
 tenant_payments
+tenant_id
 tenant_billings_rent_id
 tenant_billings_electricity_id
 tenant_billings_water_id
@@ -66,4 +67,4 @@ type -> ECASH / CASH /
 payment_type  // Rent, Electric, Water
 payment_proof
 status -> accepted / decline - if accepted minus the amount to balance and insert the proof of billings to the else declined display to tenant and must have a button resubmit
-received_by -> nullable
+received_by -> nullable the authed admin
