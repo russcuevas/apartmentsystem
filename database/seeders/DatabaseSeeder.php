@@ -17,10 +17,6 @@ class DatabaseSeeder extends Seeder
             LocationsTableSeeder::class,
             TenantsTableSeeder::class,
             TenantsRentInformationTableSeeder::class,
-            TenantsBillingRentTableSeeder::class,
-            TenantsBillingElectrictyTableSeeder::class,
-            TenantsBillingWaterTableSeeder::class,
-            TenantsPaymentsTableSeeder::class,
         ]);
     }
 }

@@ -5,6 +5,7 @@ use App\Http\Controllers\admin\AdminDashboardController;
 use App\Http\Controllers\admin\LocationsController;
 use App\Http\Controllers\admin\TenantsController;
 use App\Http\Controllers\admin\AdminBillingsController;
+use App\Http\Controllers\admin\AdminPaymentsController;
 use App\Http\Controllers\tenant\TenantDashboardController;
 use App\Http\Controllers\tenant\TenantPaymentsController;
 use Illuminate\Support\Facades\Route;
@@ -37,6 +38,9 @@ Route::middleware(['admin'])->group(function () {
     Route::post('/admin/tenants', [TenantsController::class, 'store'])->name('admin.tenants.store');
     Route::get('/admin/billings', [AdminBillingsController::class, 'index'])->name('admin.billings.index');
     Route::post('/admin/billings', [AdminBillingsController::class, 'store'])->name('admin.billings.store');
+    Route::get('/admin/payments', [AdminPaymentsController::class, 'index'])->name('admin.payments.index');
+    Route::post('/admin/payments/{id}/approve', [AdminPaymentsController::class, 'approve'])->name('admin.payments.approve');
+    Route::post('/admin/payments/{id}/decline', [AdminPaymentsController::class, 'decline'])->name('admin.payments.decline');
 });
 
 // --- TENANT AUTH ROUTES ---

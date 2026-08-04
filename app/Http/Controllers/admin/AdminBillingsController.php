@@ -7,6 +7,7 @@ use App\Models\TenantBillingsRent;
 use App\Models\TenantBillingsElectricity;
 use App\Models\TenantBillingsWater;
 use App\Models\Locations;
+use App\Models\TenantPayments;
 use App\Models\Tenants;
 use Illuminate\Http\Request;
 
@@ -25,7 +26,7 @@ class AdminBillingsController extends Controller
         $availableYears = array_map('strval', range($currentYear, $currentYear + 10));
         $locations = Locations::all();
         $selectedLocation = $selectedLocationId ? Locations::find($selectedLocationId) : null;
-        
+
         $tenantsQuery = Tenants::with(['location', 'rentInformation']);
         if ($selectedLocationId) {
             $tenantsQuery->where('location_id', $selectedLocationId);
@@ -34,9 +35,18 @@ class AdminBillingsController extends Controller
 
         // 12 calendar months list
         $allMonths = [
-            'January', 'February', 'March', 'April',
-            'May', 'June', 'July', 'August',
-            'September', 'October', 'November', 'December'
+            'January',
+            'February',
+            'March',
+            'April',
+            'May',
+            'June',
+            'July',
+            'August',
+            'September',
+            'October',
+            'November',
+            'December'
         ];
 
         // 1. Fetch Rent Billings
@@ -81,8 +91,11 @@ class AdminBillingsController extends Controller
         }
         $waterBillings = $waterQuery->get();
 
+        // 4. Fetch All Payments
+        $allPayments = TenantPayments::with('receiver')->get();
+
         // Aggregate statistics per month combined across Rent, Electricity, and Water
-        $monthsData = collect($allMonths)->map(function ($monthName) use ($rentBillings, $elecBillings, $waterBillings) {
+        $monthsData = collect($allMonths)->map(function ($monthName) use ($rentBillings, $elecBillings, $waterBillings, $allPayments) {
             $monthRents = $rentBillings->filter(function ($b) use ($monthName) {
                 return strcasecmp(trim($b->billing_month), trim($monthName)) === 0;
             })->values();
@@ -101,10 +114,14 @@ class AdminBillingsController extends Controller
                 ->merge($monthWaters->pluck('tenant_id'))
                 ->unique()->values();
 
-            $combinedBillings = $tenantIds->map(function ($tenantId) use ($monthRents, $monthElecs, $monthWaters, $monthName) {
+            $combinedBillings = $tenantIds->map(function ($tenantId) use ($monthRents, $monthElecs, $monthWaters, $monthName, $allPayments) {
                 $rent = $monthRents->firstWhere('tenant_id', $tenantId);
                 $elec = $monthElecs->firstWhere('tenant_id', $tenantId);
                 $water = $monthWaters->firstWhere('tenant_id', $tenantId);
+
+                $tenantPayments = $allPayments->filter(function ($p) use ($tenantId, $monthName) {
+                    return $p->tenant_id == $tenantId && strcasecmp(trim($p->billing_month), trim($monthName)) === 0;
+                })->values();
 
                 $tenantObj = $rent->tenant ?? $elec->tenant ?? $water->tenant ?? null;
 
@@ -121,8 +138,8 @@ class AdminBillingsController extends Controller
                     ($water->relationLoaded('payments') && $water->payments->contains('status', 'Pending'))
                 );
 
-                $rentAmount = $isRentPending ? 0 : (float) ($rent->rent_amount ?? 0);
-                $rentBalance = $isRentPending ? 0 : (float) ($rent->balance ?? 0);
+                $rentAmount = (float) ($rent->rent_amount ?? 0);
+                $rentBalance = (float) ($rent->balance ?? 0);
                 $rentStatus = $isRentPending ? 'Pending' : ($rent->status ?? 'Unpaid');
 
                 $elecAmount = $isElecPending ? 0 : (float) ($elec->rent_amount ?? 0);
@@ -133,7 +150,7 @@ class AdminBillingsController extends Controller
                 $waterBalance = $isWaterPending ? 0 : (float) ($water->balance ?? 0);
                 $waterStatus = $isWaterPending ? 'Pending' : ($water->status ?? 'Unpaid');
 
-                $hasRent = ($rent !== null && $rentAmount > 0 && !$isRentPending);
+                $hasRent = ($rent !== null && $rentAmount > 0);
                 $hasElec = ($elec !== null && $elecAmount > 0 && !$isElecPending);
                 $hasWater = ($water !== null && $waterAmount > 0 && !$isWaterPending);
 
@@ -173,6 +190,7 @@ class AdminBillingsController extends Controller
                     'proof_of_billing' => $rent->proof_of_billing ?? $elec->proof_of_billing ?? $water->proof_of_billing ?? null,
                     'elec_proof'       => $isElecPending ? null : ($elec->proof_of_billing ?? null),
                     'water_proof'      => $isWaterPending ? null : ($water->proof_of_billing ?? null),
+                    'payments'         => $tenantPayments,
                 ];
             });
 
@@ -261,4 +279,3 @@ class AdminBillingsController extends Controller
         return redirect()->back()->with('success', 'Rent billing added successfully!');
     }
 }
-
