@@ -65,5 +65,5 @@ amount
 type -> ECASH / CASH /
 payment_type  // Rent, Electric, Water
 payment_proof
-status -> accepted / decline - if accepted minus the amount to balance else declined display to tenant and must have a button resubmit
+status -> accepted / decline - if accepted minus the amount to balance and insert the proof of billings to the else declined display to tenant and must have a button resubmit
 received_by -> nullable

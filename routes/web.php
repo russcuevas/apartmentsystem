@@ -35,6 +35,7 @@ Route::middleware(['admin'])->group(function () {
     Route::get('/admin/tenants', [TenantsController::class, 'TenantPage'])->name('admin.tenants.page');
     Route::post('/admin/tenants', [TenantsController::class, 'store'])->name('admin.tenants.store');
     Route::get('/admin/billings', [AdminBillingsController::class, 'index'])->name('admin.billings.index');
+    Route::post('/admin/billings', [AdminBillingsController::class, 'store'])->name('admin.billings.store');
 });
 
 // --- TENANT AUTH ROUTES ---

@@ -30,4 +30,14 @@ class Tenants extends Authenticatable
     {
         return $this->hasMany(TenantBillingsRent::class, 'tenant_id');
     }
+
+    public function billingsElectricity()
+    {
+        return $this->hasMany(TenantBillingsElectricity::class, 'tenant_id');
+    }
+
+    public function billingsWater()
+    {
+        return $this->hasMany(TenantBillingsWater::class, 'tenant_id');
+    }
 }
