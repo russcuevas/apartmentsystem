@@ -34,8 +34,25 @@
                 </a>
             </li>
 
+            <!-- All Tenants Link -->
+            {{-- <li>
+                <a href="{{ route('admin.tenants.page') }}"
+                    class="menu-item-link {{ request()->routeIs('admin.tenants.page') && !request()->has('location_id') ? 'active' : '' }}">
+                    <span class="menu-item-left">
+                        <!-- User / Tenants Icon -->
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
+                            </path>
+                        </svg>
+                        Tenants
+                    </span>
+                </a>
+            </li> --}}
+
             <!-- Locations Dropdown Option -->
-            <li class="menu-item-dropdown {{ request()->is('admin/locations/*') ? 'open' : '' }}"
+            <li class="menu-item-dropdown {{ request()->is('admin/locations/*') || request()->has('location_id') ? 'open' : '' }}"
                 id="locationsMenuDropdown">
                 <a class="menu-item-link" id="locationsToggle">
                     <span class="menu-item-left">
@@ -64,7 +81,7 @@
                     @endphp
                     @forelse ($backendLocations as $loc)
                         <li
-                            class="location-sub-dropdown {{ request()->is('admin/locations/' . $loc->id . '*') ? 'open' : '' }}">
+                            class="location-sub-dropdown {{ request()->is('admin/locations/' . $loc->id . '*') || (request()->routeIs('admin.tenants.page', 'admin.billings.index') && request('location_id') == $loc->id) ? 'open' : '' }}">
                             <a href="javascript:void(0)" class="location-sub-toggle">
                                 <span>{{ $loc->location_name }}</span>
                                 <svg class="chevron-icon-sm" fill="none" stroke="currentColor" stroke-width="2"
@@ -80,14 +97,14 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('admin.locations.page', $loc->id) }}#add-tenant"
-                                        class="nested-link">
+                                    <a href="{{ route('admin.tenants.page', ['location_id' => $loc->id]) }}"
+                                        class="nested-link {{ request()->routeIs('admin.tenants.page') && request('location_id') == $loc->id ? 'active' : '' }}">
                                         Tenants
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('admin.locations.page', $loc->id) }}#rent-billings"
-                                        class="nested-link">
+                                    <a href="{{ route('admin.billings.index', ['location_id' => $loc->id]) }}"
+                                        class="nested-link {{ request()->routeIs('admin.billings.index') && request('location_id') == $loc->id ? 'active' : '' }}">
                                         Billings
                                     </a>
                                 </li>

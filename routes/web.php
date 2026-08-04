@@ -3,6 +3,8 @@
 use App\Http\Controllers\auth\AuthController;
 use App\Http\Controllers\admin\AdminDashboardController;
 use App\Http\Controllers\admin\LocationsController;
+use App\Http\Controllers\admin\TenantsController;
+use App\Http\Controllers\admin\AdminBillingsController;
 use App\Http\Controllers\tenant\TenantDashboardController;
 use Illuminate\Support\Facades\Route;
 
@@ -30,6 +32,9 @@ Route::post('/admin/logout', [AuthController::class, 'AdminLogoutRequest'])->nam
 Route::middleware(['admin'])->group(function () {
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'AdminDashboardPage'])->name('admin.dashboard.page');
     Route::get('/admin/locations/{id}', [LocationsController::class, 'LocationsPage'])->name('admin.locations.page');
+    Route::get('/admin/tenants', [TenantsController::class, 'TenantPage'])->name('admin.tenants.page');
+    Route::post('/admin/tenants', [TenantsController::class, 'store'])->name('admin.tenants.store');
+    Route::get('/admin/billings', [AdminBillingsController::class, 'index'])->name('admin.billings.index');
 });
 
 // --- TENANT AUTH ROUTES ---
