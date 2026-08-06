@@ -104,7 +104,7 @@
                 <div class="dropdown-card-header">
                     <span class="dropdown-card-title">Manage Account</span>
                 </div>
-                <a href="#" class="user-menu-item">
+                <a href="javascript:void(0)" class="user-menu-item" id="openTenantAccountBtn">
                     <!-- User Icon -->
                     <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
                         xmlns="http://www.w3.org/2000/svg">
@@ -135,3 +135,303 @@
         </div>
     </div>
 </header>
+
+<style>
+    /* My Account Self-Contained Modal Overlay & Layout Styles */
+    #tenantAccountModal.modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(15, 23, 42, 0.65);
+        backdrop-filter: blur(4px);
+        z-index: 10040;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.25s ease-in-out;
+    }
+
+    #tenantAccountModal.modal-overlay.active {
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+
+    #tenantAccountModal .modal-container-lg {
+        background: #ffffff;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 780px;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+        transform: translateY(20px);
+        transition: transform 0.25s ease-in-out;
+        overflow: hidden;
+    }
+
+    #tenantAccountModal.modal-overlay.active .modal-container-lg {
+        transform: translateY(0);
+    }
+
+    #tenantAccountModal .modal-header {
+        padding: 18px 24px;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #f8fafc;
+    }
+
+    #tenantAccountModal .modal-title {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: #0f172a;
+        margin: 0;
+    }
+
+    #tenantAccountModal .modal-close-btn {
+        background: transparent;
+        border: none;
+        font-size: 1.5rem;
+        color: #64748b;
+        cursor: pointer;
+        line-height: 1;
+        padding: 4px;
+        border-radius: 6px;
+        transition: background 0.2s;
+    }
+
+    #tenantAccountModal .modal-close-btn:hover {
+        background: #e2e8f0;
+        color: #0f172a;
+    }
+
+    #tenantAccountModal .modal-body {
+        padding: 24px;
+        overflow-y: auto;
+        max-height: calc(90vh - 80px);
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Modal Form Custom Inputs */
+    #tenantAccountModal .account-input-custom {
+        padding: 10px 14px;
+        border-radius: 8px;
+        border: 1.5px solid #cbd5e1;
+        background: #ffffff;
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #0f172a;
+        outline: none;
+        transition: all 0.2s ease-in-out;
+        box-sizing: border-box;
+        font-family: inherit;
+    }
+
+    #tenantAccountModal .account-input-custom:disabled {
+        background: #f1f5f9 !important;
+        color: #334155 !important;
+        cursor: not-allowed;
+        border-color: #e2e8f0 !important;
+    }
+
+    #tenantAccountModal .account-input-custom:focus {
+        border-color: #0d9488 !important;
+        box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15) !important;
+    }
+
+    /* Status Pill fallback */
+    #tenantAccountModal .account-status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.78rem;
+        font-weight: 800;
+        background: #dcfce7;
+        color: #15803d;
+        border: 1px solid #bbf7d0;
+    }
+
+    /* Account Action Buttons */
+    #tenantAccountModal .account-btn-secondary {
+        background: #e2e8f0;
+        color: #334155;
+        font-weight: 700;
+        border: none;
+        padding: 10px 18px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    #tenantAccountModal .account-btn-secondary:hover {
+        background: #cbd5e1;
+    }
+
+    #tenantAccountModal .account-btn-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: #ffffff !important;
+        background: linear-gradient(135deg, #0d9488, #0f766e);
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
+        transition: all 0.2s ease-in-out;
+    }
+
+    #tenantAccountModal .account-btn-primary:hover {
+        background: linear-gradient(135deg, #0f766e, #115e59);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(13, 148, 136, 0.35);
+    }
+</style>
+
+<!-- MODAL: MY ACCOUNT MODAL -->
+<div class="modal-overlay @if ($errors->has('current_password') || $errors->has('new_password')) active @endif" id="tenantAccountModal">
+    <div class="modal-container-lg">
+        <div class="modal-header">
+            <div>
+                <h3 class="modal-title">👤 My Account Details</h3>
+                <p style="font-size: 0.82rem; color: #64748b; margin-top: 2px;">
+                    View your profile details and update your security password.
+                </p>
+            </div>
+            <button type="button" class="modal-close-btn" id="closeTenantAccountBtn">&times;</button>
+        </div>
+        <div class="modal-body">
+            
+            <!-- SECTION 1: Read-Only Tenant Details -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin-bottom: 24px;">
+                <div style="font-size: 0.88rem; font-weight: 800; color: #0f172a; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between;">
+                    <span>📋 Personal & Rental Profile</span>
+                    <span class="account-status-pill">Active Tenant</span>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
+                    <div>
+                        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Full Name</label>
+                        <input type="text" class="account-input-custom" value="{{ Auth::guard('tenant')->user()->fullname ?? 'N/A' }}" disabled style="width: 100%;">
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Phone Number (Login Contact)</label>
+                        <input type="text" class="account-input-custom" value="{{ Auth::guard('tenant')->user()->phone_number ?? 'N/A' }}" disabled style="width: 100%;">
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Apartment Location</label>
+                        <input type="text" class="account-input-custom" value="📍 {{ Auth::guard('tenant')->user()->location->location_name ?? 'N/A' }}" disabled style="width: 100%; color: #0369a1 !important;">
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Assigned Room</label>
+                        <input type="text" class="account-input-custom" value="🚪 {{ Auth::guard('tenant')->user()->rentInformation->room ?? 'N/A' }}" disabled style="width: 100%;">
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Monthly Rent Rate</label>
+                        <input type="text" class="account-input-custom" value="₱{{ number_format(Auth::guard('tenant')->user()->rentInformation->monthly_rental ?? 0, 2) }}" disabled style="width: 100%; color: #166534 !important; font-weight: 800;">
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Lease Start Date</label>
+                        <input type="text" class="account-input-custom" value="📅 {{ !empty(Auth::guard('tenant')->user()->rentInformation->start_date) ? \Carbon\Carbon::parse(Auth::guard('tenant')->user()->rentInformation->start_date)->format('M d, Y') : 'N/A' }}" disabled style="width: 100%;">
+                    </div>
+                </div>
+                <div style="margin-top: 12px; font-size: 0.75rem; color: #64748b; font-style: italic;">
+                    🔒 Profile details are set by the administrator. Only your password can be updated below.
+                </div>
+            </div>
+
+            <!-- SECTION 2: Change Password Form (Editable) -->
+            <form action="{{ route('tenant.password.update') }}" method="POST" id="tenantChangePasswordForm">
+                @csrf
+                <div style="background: #ffffff; border: 1.5px solid #0d9488; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.08);">
+                    <div style="font-size: 0.92rem; font-weight: 800; color: #0f172a; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+                        <span>🔒 Change Password</span>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 14px;">
+                        <div>
+                            <label style="display: block; font-size: 0.84rem; font-weight: 700; color: #334155; margin-bottom: 6px;">
+                                Current Password <span style="color: #ef4444;">*</span>
+                            </label>
+                            <input type="password" name="current_password" class="account-input-custom" style="width: 100%; height: 42px;" placeholder="Type your current password..." required>
+                            @error('current_password')
+                                <span style="color: #dc2626; font-size: 0.78rem; font-weight: 700; margin-top: 4px; display: block;">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">
+                            <div>
+                                <label style="display: block; font-size: 0.84rem; font-weight: 700; color: #334155; margin-bottom: 6px;">
+                                    New Password <span style="color: #ef4444;">*</span>
+                                </label>
+                                <input type="password" name="new_password" class="account-input-custom" style="width: 100%; height: 42px;" placeholder="Min. 6 characters..." required>
+                                @error('new_password')
+                                    <span style="color: #dc2626; font-size: 0.78rem; font-weight: 700; margin-top: 4px; display: block;">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label style="display: block; font-size: 0.84rem; font-weight: 700; color: #334155; margin-bottom: 6px;">
+                                    Confirm New Password <span style="color: #ef4444;">*</span>
+                                </label>
+                                <input type="password" name="new_password_confirmation" class="account-input-custom" style="width: 100%; height: 42px;" placeholder="Re-type new password..." required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                    <button type="button" class="account-btn-secondary" id="cancelTenantAccountBtn">Close</button>
+                    <button type="submit" class="account-btn-primary">🔑 Update Password</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('click', function(e) {
+        // Open Modal when clicking My Account
+        const openBtn = e.target.closest('#openTenantAccountBtn');
+        if (openBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            const userProfileDropdown = document.getElementById('userProfileDropdown');
+            if (userProfileDropdown) userProfileDropdown.classList.remove('show');
+            const modal = document.getElementById('tenantAccountModal');
+            if (modal) modal.classList.add('active');
+            return;
+        }
+
+        // Close Modal when clicking Close / Cancel buttons or Overlay
+        const closeBtn = e.target.closest('#closeTenantAccountBtn') || e.target.closest('#cancelTenantAccountBtn');
+        const modal = document.getElementById('tenantAccountModal');
+        if (closeBtn && modal) {
+            e.preventDefault();
+            modal.classList.remove('active');
+            return;
+        }
+
+        if (e.target === modal) {
+            modal.classList.remove('active');
+        }
+    });
+</script>
+

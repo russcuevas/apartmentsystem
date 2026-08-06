@@ -99,4 +99,29 @@ class AuthController extends Controller
 
         return redirect()->route('tenant.login.page')->with('success', 'Logged out successfully');
     }
+
+    /**
+     * Update Tenant Password from My Account modal
+     */
+    public function TenantChangePassword(Request $request)
+    {
+        $tenant = Auth::guard('tenant')->user();
+        if (!$tenant) {
+            return redirect()->route('tenant.login.page');
+        }
+
+        $request->validate([
+            'current_password' => 'required',
+            'new_password'     => 'required|string|min:6|confirmed',
+        ]);
+
+        if (!\Illuminate\Support\Facades\Hash::check($request->current_password, $tenant->password)) {
+            return back()->withErrors(['current_password' => 'The current password you provided is incorrect.']);
+        }
+
+        $tenant->password = \Illuminate\Support\Facades\Hash::make($request->new_password);
+        $tenant->save();
+
+        return back()->with('success', 'Your password has been updated successfully!');
+    }
 }

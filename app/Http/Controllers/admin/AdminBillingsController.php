@@ -138,17 +138,25 @@ class AdminBillingsController extends Controller
                     ($water->relationLoaded('payments') && $water->payments->contains('status', 'Pending'))
                 );
 
-                $rentAmount = (float) ($rent->rent_amount ?? 0);
-                $rentBalance = (float) ($rent->balance ?? 0);
-                $rentStatus = $isRentPending ? 'Pending' : ($rent->status ?? 'Unpaid');
+                $approvedPayments = $tenantPayments->filter(function ($p) {
+                    return in_array($p->status, ['Approved', 'Accepted']);
+                });
 
-                $elecAmount = $isElecPending ? 0 : (float) ($elec->rent_amount ?? 0);
-                $elecBalance = $isElecPending ? 0 : (float) ($elec->balance ?? 0);
-                $elecStatus = $isElecPending ? 'Pending' : ($elec->status ?? 'Unpaid');
+                $rentPaid  = (float) $approvedPayments->filter(fn($p) => strcasecmp(trim($p->payment_type ?? ''), 'Rent') === 0)->sum('amount');
+                $elecPaid  = (float) $approvedPayments->filter(fn($p) => strcasecmp(trim($p->payment_type ?? ''), 'Electricity') === 0)->sum('amount');
+                $waterPaid = (float) $approvedPayments->filter(fn($p) => strcasecmp(trim($p->payment_type ?? ''), 'Water') === 0)->sum('amount');
 
-                $waterAmount = $isWaterPending ? 0 : (float) ($water->rent_amount ?? 0);
-                $waterBalance = $isWaterPending ? 0 : (float) ($water->balance ?? 0);
-                $waterStatus = $isWaterPending ? 'Pending' : ($water->status ?? 'Unpaid');
+                $rentAmount  = (float) ($rent->rent_amount ?? 0);
+                $rentBalance = max(0, $rentAmount - $rentPaid);
+                $rentStatus  = $isRentPending ? 'Pending' : ($rentAmount > 0 ? ($rentBalance <= 0 ? 'Paid' : ($rentPaid > 0 ? 'Partial' : 'Unpaid')) : 'Unpaid');
+
+                $elecAmount  = $isElecPending ? 0 : (float) ($elec->rent_amount ?? 0);
+                $elecBalance = $isElecPending ? 0 : max(0, $elecAmount - $elecPaid);
+                $elecStatus  = $isElecPending ? 'Pending' : ($elecAmount > 0 ? ($elecBalance <= 0 ? 'Paid' : ($elecPaid > 0 ? 'Partial' : 'Unpaid')) : 'Unpaid');
+
+                $waterAmount  = $isWaterPending ? 0 : (float) ($water->rent_amount ?? 0);
+                $waterBalance = $isWaterPending ? 0 : max(0, $waterAmount - $waterPaid);
+                $waterStatus  = $isWaterPending ? 'Pending' : ($waterAmount > 0 ? ($waterBalance <= 0 ? 'Paid' : ($waterPaid > 0 ? 'Partial' : 'Unpaid')) : 'Unpaid');
 
                 $hasRent = ($rent !== null && $rentAmount > 0);
                 $hasElec = ($elec !== null && $elecAmount > 0 && !$isElecPending);

@@ -142,8 +142,14 @@ class AdminPaymentsController extends Controller
                     ->first();
             }
             if ($rent) {
-                $newBalance = max(0, (float) $rent->balance - (float) $payment->amount);
-                $newStatus = ($newBalance <= 0) ? 'Paid' : (($newBalance < (float)$rent->rent_amount) ? 'Partial' : 'Unpaid');
+                $totalRentPaid = TenantPayments::where('tenant_id', $payment->tenant_id)
+                    ->where('billing_month', $payment->billing_month)
+                    ->whereIn('payment_type', ['Rent', 'Monthly Rental'])
+                    ->whereIn('status', ['Approved', 'Accepted'])
+                    ->sum('amount');
+
+                $newBalance = max(0, (float) $rent->rent_amount - (float) $totalRentPaid);
+                $newStatus = ($newBalance <= 0) ? 'Paid' : (($totalRentPaid > 0) ? 'Partial' : 'Unpaid');
                 $rent->update([
                     'balance' => $newBalance,
                     'status'  => $newStatus,
@@ -163,15 +169,19 @@ class AdminPaymentsController extends Controller
                     ->first();
             }
 
-            $elecTotal = (float) ($payment->electricity_amount ?? ($elecBilling ? $elecBilling->rent_amount : $payment->amount));
-            $paidAmount = (float) $payment->amount;
+            $totalElecPaid = TenantPayments::where('tenant_id', $payment->tenant_id)
+                ->where('billing_month', $payment->billing_month)
+                ->whereIn('payment_type', ['Electricity'])
+                ->whereIn('status', ['Approved', 'Accepted'])
+                ->sum('amount');
 
+            $elecTotal = (float) ($payment->electricity_amount ?? ($elecBilling ? $elecBilling->rent_amount : $payment->amount));
             $baseBalance = $elecBilling ? (float) $elecBilling->rent_amount : $elecTotal;
             if ($baseBalance <= 0) {
                 $baseBalance = $elecTotal;
             }
-            $newBalance = max(0, $baseBalance - $paidAmount);
-            $newStatus = ($newBalance <= 0) ? 'Paid' : (($paidAmount > 0) ? 'Partial' : 'Unpaid');
+            $newBalance = max(0, $baseBalance - (float) $totalElecPaid);
+            $newStatus = ($newBalance <= 0) ? 'Paid' : (($totalElecPaid > 0) ? 'Partial' : 'Unpaid');
 
             $proofElec = $payment->file_electricity ?? $payment->proof_of_billing ?? null;
 
@@ -209,15 +219,19 @@ class AdminPaymentsController extends Controller
                     ->first();
             }
 
-            $waterTotal = (float) ($payment->water_amount ?? ($waterBilling ? $waterBilling->rent_amount : $payment->amount));
-            $paidAmount = (float) $payment->amount;
+            $totalWaterPaid = TenantPayments::where('tenant_id', $payment->tenant_id)
+                ->where('billing_month', $payment->billing_month)
+                ->whereIn('payment_type', ['Water'])
+                ->whereIn('status', ['Approved', 'Accepted'])
+                ->sum('amount');
 
+            $waterTotal = (float) ($payment->water_amount ?? ($waterBilling ? $waterBilling->rent_amount : $payment->amount));
             $baseBalance = $waterBilling ? (float) $waterBilling->rent_amount : $waterTotal;
             if ($baseBalance <= 0) {
                 $baseBalance = $waterTotal;
             }
-            $newBalance = max(0, $baseBalance - $paidAmount);
-            $newStatus = ($newBalance <= 0) ? 'Paid' : (($paidAmount > 0) ? 'Partial' : 'Unpaid');
+            $newBalance = max(0, $baseBalance - (float) $totalWaterPaid);
+            $newStatus = ($newBalance <= 0) ? 'Paid' : (($totalWaterPaid > 0) ? 'Partial' : 'Unpaid');
 
             $proofWater = $payment->file_water ?? $payment->proof_of_billing ?? null;
 

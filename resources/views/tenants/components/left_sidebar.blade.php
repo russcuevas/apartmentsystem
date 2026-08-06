@@ -35,7 +35,7 @@
 
             <!-- Billings Link -->
             <li>
-                <a href="#" class="menu-item-link {{ request()->routeIs('tenant.billings*') ? 'active' : '' }}">
+                <a href="{{ route('tenant.billings.index') }}" class="menu-item-link {{ request()->routeIs('tenant.billings*') ? 'active' : '' }}">
                     <span class="menu-item-left">
                         <!-- Document/Billing Receipt Icon -->
                         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"

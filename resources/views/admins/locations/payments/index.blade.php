@@ -359,19 +359,6 @@
                 <!-- Filter Controls (Location & Year Dropdowns) -->
                 <form action="{{ route('admin.payments.index') }}" method="GET" id="adminPaymentsFilterForm">
                     <div class="filter-controls-card">
-                        <div class="filter-group">
-                            <span class="filter-label">Filter Location:</span>
-                            <select name="location_id" class="filter-select"
-                                onchange="document.getElementById('adminPaymentsFilterForm').submit()">
-                                <option value="">-- All Locations --</option>
-                                @foreach ($locations as $loc)
-                                    <option value="{{ $loc->id }}"
-                                        {{ $selectedLocationId == $loc->id ? 'selected' : '' }}>
-                                        {{ $loc->location_name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
 
                         <div class="filter-group">
                             <span class="filter-label">Select Year:</span>
@@ -489,8 +476,7 @@
     <div class="modal-overlay" id="imageViewerModal" style="z-index: 10050;">
         <div class="modal-container-lg"
             style="max-width: 800px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); color: #fff;">
-            <div class="modal-header"
-                style="background: transparent; border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <div class="modal-header" style="background: transparent; border-bottom: 1px solid rgba(255,255,255,0.1);">
                 <h3 class="modal-title" id="imageViewerCaption" style="color: #ffffff;">Image Preview</h3>
                 <button type="button" class="modal-close-btn" id="closeImageViewerBtn"
                     style="color: #ffffff;">&times;</button>
@@ -697,8 +683,10 @@
                     const grouped = {};
                     payments.forEach(function(p) {
                         const tenantName = p.tenant ? p.tenant.fullname : 'N/A';
-                        const locationName = (p.tenant && p.tenant.location) ? p.tenant.location.location_name : 'N/A';
-                        const room = (p.tenant && p.tenant.rent_information) ? p.tenant.rent_information.room : 'N/A';
+                        const locationName = (p.tenant && p.tenant.location) ? p.tenant.location
+                            .location_name : 'N/A';
+                        const room = (p.tenant && p.tenant.rent_information) ? p.tenant
+                            .rent_information.room : 'N/A';
                         const key = `${tenantName}_${locationName}_${room}`;
 
                         if (!grouped[key]) {
@@ -718,11 +706,12 @@
                         let itemsHtml = '';
 
                         group.items.forEach(function(p) {
-                            const dateStr = p.created_at ? new Date(p.created_at).toLocaleDateString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                                year: 'numeric'
-                            }) : 'N/A';
+                            const dateStr = p.created_at ? new Date(p.created_at)
+                                .toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric'
+                                }) : 'N/A';
 
                             const rawAmount = parseFloat(p.amount || 0);
                             totalGroupAmount += rawAmount;
@@ -732,18 +721,21 @@
                                 maximumFractionDigits: 2
                             });
 
-                            const typeBadgeClass = (p.type === 'ECASH') ? 'badge-ecash' : 'badge-cash';
+                            const typeBadgeClass = (p.type === 'ECASH') ? 'badge-ecash' :
+                                'badge-cash';
                             const paymentType = p.payment_type || 'Rent';
                             const status = p.status || 'Pending';
 
                             let statusClass = 'warning';
-                            if (status === 'Approved' || status === 'Accepted') statusClass = 'success';
+                            if (status === 'Approved' || status === 'Accepted')
+                                statusClass = 'success';
                             else if (status === 'Declined') statusClass = 'danger';
 
                             // 1. Proof of Billing Column (Electricity or Water statement)
                             let billingDocs = [];
                             if (p.file_electricity && p.file_electricity !== '') {
-                                const isImg = /\.(jpg|jpeg|png|webp|gif)$/i.test(p.file_electricity);
+                                const isImg = /\.(jpg|jpeg|png|webp|gif)$/i.test(p
+                                    .file_electricity);
                                 if (isImg) {
                                     billingDocs.push(
                                         `<a href="javascript:void(0)" class="view-proof-img-link" data-src="${p.file_electricity}" data-title="Electricity Bill #${p.id} (${group.tenantName})" style="color: #0284c7; font-weight: 700; text-decoration: underline; display: inline-block; margin-right: 8px;">⚡ Electric Bill Document</a>`
@@ -755,7 +747,8 @@
                                 }
                             }
                             if (p.file_water && p.file_water !== '') {
-                                const isImg = /\.(jpg|jpeg|png|webp|gif)$/i.test(p.file_water);
+                                const isImg = /\.(jpg|jpeg|png|webp|gif)$/i.test(p
+                                    .file_water);
                                 if (isImg) {
                                     billingDocs.push(
                                         `<a href="javascript:void(0)" class="view-proof-img-link" data-src="${p.file_water}" data-title="Water Bill #${p.id} (${group.tenantName})" style="color: #0284c7; font-weight: 700; text-decoration: underline; display: inline-block;">💧 Water Bill Document</a>`
@@ -766,13 +759,16 @@
                                     );
                                 }
                             }
-                            let billingProofHtml = billingDocs.length > 0 ? billingDocs.join('') :
+                            let billingProofHtml = billingDocs.length > 0 ? billingDocs
+                                .join('') :
                                 `<span style="color: #94a3b8; font-style: italic;">No billing statement</span>`;
 
                             // 2. Payment Proof Column (Receipt / Transfer proof)
-                            let paymentProofHtml = `<span style="color: #94a3b8; font-style: italic;">No payment proof</span>`;
+                            let paymentProofHtml =
+                                `<span style="color: #94a3b8; font-style: italic;">No payment proof</span>`;
                             if (p.payment_proof && p.payment_proof !== '') {
-                                const isImg = /\.(jpg|jpeg|png|webp|gif)$/i.test(p.payment_proof);
+                                const isImg = /\.(jpg|jpeg|png|webp|gif)$/i.test(p
+                                    .payment_proof);
                                 if (isImg) {
                                     paymentProofHtml =
                                         `<a href="javascript:void(0)" class="view-proof-img-link" data-src="${p.payment_proof}" data-title="Payment Proof #${p.id} (${group.tenantName})" style="color: var(--primary); font-weight: 700; text-decoration: underline; display: inline-block;">💳 Payment Receipt</a>`;
@@ -782,12 +778,16 @@
                                 }
                             }
 
-                            const receiverName = p.receiver ? p.receiver.fullname : ((status === 'Approved' || status === 'Accepted') ? 'Admin' : '-');
+                            const receiverName = p.receiver ? p.receiver.fullname : ((
+                                    status === 'Approved' || status === 'Accepted') ?
+                                'Admin' : '-');
 
                             let actionHtml = '';
                             if (status === 'Pending') {
-                                const approveUrl = approveRouteTemplate.replace(':id', p.id);
-                                const declineUrl = declineRouteTemplate.replace(':id', p.id);
+                                const approveUrl = approveRouteTemplate.replace(':id', p
+                                .id);
+                                const declineUrl = declineRouteTemplate.replace(':id', p
+                                .id);
 
                                 actionHtml = `
                                     <div style="display: flex; gap: 6px; align-items: center;">
@@ -817,7 +817,8 @@
                             let handedToHtml = '';
                             if (p.type === 'CASH') {
                                 const handedTo = p.get_fullname ? p.get_fullname : 'N/A';
-                                handedToHtml = `<div style="font-size: 0.76rem; color: #334155; font-weight: 600; margin-top: 2px;">👤 Handed to: ${handedTo}</div>`;
+                                handedToHtml =
+                                    `<div style="font-size: 0.76rem; color: #334155; font-weight: 600; margin-top: 2px;">👤 Handed to: ${handedTo}</div>`;
                             }
 
                             itemsHtml += `
