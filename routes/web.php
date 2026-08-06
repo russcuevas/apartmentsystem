@@ -26,10 +26,13 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-// --- ADMIN AUTH ROUTES ---
+// --- ADMIN AUTH & FORGOT PASSWORD ROUTES ---
 Route::get('/admin/login', [AuthController::class, 'AdminLoginPage'])->name('admin.login.page');
 Route::post('/admin/login', [AuthController::class, 'AdminLoginRequest'])->name('admin.login.request');
 Route::post('/admin/logout', [AuthController::class, 'AdminLogoutRequest'])->name('admin.logout.request');
+Route::post('/admin/forgot-password', [AuthController::class, 'AdminSendResetLink'])->name('admin.password.email');
+Route::get('/admin/reset-password/{token}', [AuthController::class, 'AdminResetPasswordPage'])->name('admin.password.reset');
+Route::post('/admin/reset-password', [AuthController::class, 'AdminResetPasswordUpdate'])->name('admin.password.update');
 
 // --- ADMIN PROTECTED ROUTES ---
 Route::middleware(['admin'])->group(function () {
@@ -42,6 +45,7 @@ Route::middleware(['admin'])->group(function () {
     Route::get('/admin/payments', [AdminPaymentsController::class, 'index'])->name('admin.payments.index');
     Route::post('/admin/payments/{id}/approve', [AdminPaymentsController::class, 'approve'])->name('admin.payments.approve');
     Route::post('/admin/payments/{id}/decline', [AdminPaymentsController::class, 'decline'])->name('admin.payments.decline');
+    Route::post('/admin/account/update', [AuthController::class, 'AdminUpdateAccount'])->name('admin.account.update');
 });
 
 // --- TENANT AUTH ROUTES ---

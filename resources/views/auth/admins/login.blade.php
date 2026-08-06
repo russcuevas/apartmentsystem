@@ -117,7 +117,7 @@
 
                     <!-- Forgot Password -->
                     <div class="form-options">
-                        <a href="#" class="forgot-link">Forgot password?</a>
+                        <a href="javascript:void(0)" id="openForgotModal" class="forgot-link">Forgot password?</a>
                     </div>
 
                     <!-- Submit Button -->
@@ -146,6 +146,61 @@
         </div>
     </div>
 
+    <!-- Forgot Password Modal -->
+    <div class="modal-overlay" id="forgotModalOverlay">
+        <div class="modal-card">
+            <button type="button" class="modal-close" id="closeForgotModal" aria-label="Close Modal">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+            <div class="modal-header">
+                <h2>Forgot Password?</h2>
+                <p>Enter your registered admin email address and we'll send you a link to reset your password.</p>
+            </div>
+
+            @if ($errors->has('forgot_email'))
+                <div class="alert" style="margin-bottom: 20px;">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    <div>{{ $errors->first('forgot_email') }}</div>
+                </div>
+            @endif
+
+            <form action="{{ route('admin.password.email') }}" method="POST" id="forgotPasswordForm">
+                @csrf
+                <div class="form-group">
+                    <label for="forgot_email" class="form-label">Email Address</label>
+                    <div class="input-wrapper">
+                        <input type="email" id="forgot_email" name="email" class="form-control"
+                            placeholder="admin@example.com" value="{{ old('email') }}" required>
+                        <div class="input-icon">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                <polyline points="22,6 12,13 2,6"></polyline>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn-submit" id="forgotSubmitBtn">
+                    <span id="forgotBtnText">Send Reset Link</span>
+                    <svg id="forgotBtnArrow" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                    <svg id="forgotBtnSpinner" class="btn-spinner" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display: none;">
+                        <circle cx="12" cy="12" r="10" stroke-opacity="0.25" stroke="currentColor" fill="none"></circle>
+                        <path d="M12 2 a 10 10 0 0 1 10 10" stroke="currentColor" stroke-linecap="round" fill="none"></path>
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </div>
+
     <script src="{{ asset('auth/script.js') }}" defer></script>
 
     <!-- Notyf JS -->
@@ -165,6 +220,53 @@
             @if(session('error'))
                 notyf.error(@json(session('error')));
             @endif
+
+            // Modal Trigger Logic
+            const openModalBtn = document.getElementById('openForgotModal');
+            const closeModalBtn = document.getElementById('closeForgotModal');
+            const modalOverlay = document.getElementById('forgotModalOverlay');
+
+            if (openModalBtn && modalOverlay) {
+                openModalBtn.addEventListener('click', function() {
+                    modalOverlay.classList.add('active');
+                });
+            }
+
+            if (closeModalBtn && modalOverlay) {
+                closeModalBtn.addEventListener('click', function() {
+                    modalOverlay.classList.remove('active');
+                });
+            }
+
+            if (modalOverlay) {
+                modalOverlay.addEventListener('click', function(e) {
+                    if (e.target === modalOverlay) {
+                        modalOverlay.classList.remove('active');
+                    }
+                });
+            }
+
+            @if($errors->has('forgot_email'))
+                if (modalOverlay) {
+                    modalOverlay.classList.add('active');
+                }
+            @endif
+
+            // Forgot Password Loading Spinner Handler
+            const forgotForm = document.getElementById('forgotPasswordForm');
+            const forgotSubmitBtn = document.getElementById('forgotSubmitBtn');
+            const forgotBtnText = document.getElementById('forgotBtnText');
+            const forgotBtnArrow = document.getElementById('forgotBtnArrow');
+            const forgotBtnSpinner = document.getElementById('forgotBtnSpinner');
+
+            if (forgotForm && forgotSubmitBtn) {
+                forgotForm.addEventListener('submit', function() {
+                    forgotSubmitBtn.disabled = true;
+                    if (forgotBtnText) forgotBtnText.textContent = 'Sending link...';
+                    if (forgotBtnArrow) forgotBtnArrow.style.display = 'none';
+                    if (forgotBtnSpinner) forgotBtnSpinner.style.display = 'inline-block';
+                });
+            }
         });
     </script>
 </body>

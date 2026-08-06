@@ -3,8 +3,15 @@
 namespace App\Http\Controllers\auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Admins;
+use App\Mail\AdminResetPasswordMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 class AuthController extends Controller
 {
@@ -17,6 +24,85 @@ class AuthController extends Controller
             return redirect()->route('admin.dashboard.page');
         }
         return view('auth.admins.login');
+    }
+
+    /**
+     * Handle Admin Send Password Reset Link
+     */
+    public function AdminSendResetLink(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $admin = Admins::where('email', $request->email)->first();
+
+        if (!$admin) {
+            return back()->withErrors(['forgot_email' => 'We could not find an admin with that email address.'])->withInput();
+        }
+
+        $token = Str::random(64);
+
+        DB::table('password_reset_tokens')->updateOrInsert(
+            ['email' => $request->email],
+            [
+                'token' => Hash::make($token),
+                'created_at' => Carbon::now(),
+            ]
+        );
+
+        try {
+            Mail::to($request->email)->send(new AdminResetPasswordMail($token, $request->email));
+            return back()->with('success', 'We have emailed your password reset link! Please check your inbox.');
+        } catch (\Exception $e) {
+            return back()->withErrors(['forgot_email' => 'Failed to send reset email: ' . $e->getMessage()])->withInput();
+        }
+    }
+
+    /**
+     * Show Admin Reset Password Page
+     */
+    public function AdminResetPasswordPage(Request $request, $token)
+    {
+        return view('auth.admins.reset-password', [
+            'token' => $token,
+            'email' => $request->query('email', $request->email),
+        ]);
+    }
+
+    /**
+     * Handle Admin Reset Password Submission
+     */
+    public function AdminResetPasswordUpdate(Request $request)
+    {
+        $request->validate([
+            'token'                 => 'required',
+            'email'                 => 'required|email',
+            'password'              => 'required|string|min:6|confirmed',
+        ]);
+
+        $resetRecord = DB::table('password_reset_tokens')->where('email', $request->email)->first();
+
+        if (!$resetRecord || !Hash::check($request->token, $resetRecord->token)) {
+            return back()->withErrors(['email' => 'This password reset link is invalid or has expired.']);
+        }
+
+        if (Carbon::parse($resetRecord->created_at)->addMinutes(60)->isPast()) {
+            DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+            return back()->withErrors(['email' => 'This password reset link has expired. Please request a new one.']);
+        }
+
+        $admin = Admins::where('email', $request->email)->first();
+        if (!$admin) {
+            return back()->withErrors(['email' => 'We could not find an admin with that email address.']);
+        }
+
+        $admin->password = Hash::make($request->password);
+        $admin->save();
+
+        DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+
+        return redirect()->route('admin.login.page')->with('success', 'Your password has been reset successfully! You can now log in.');
     }
 
     /**
@@ -52,6 +138,40 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('admin.login.page')->with('success', 'Logged out successfully');
+    }
+
+    /**
+     * Update Admin Account details and password
+     */
+    public function AdminUpdateAccount(Request $request)
+    {
+        /** @var \App\Models\Admins $admin */
+        $admin = Auth::guard('admin')->user();
+        if (!$admin) {
+            return redirect()->route('admin.login.page');
+        }
+
+        $request->validate([
+            'fullname'     => 'required|string|max:255',
+            'email'        => 'required|email|unique:admins,email,' . $admin->id,
+            'phone_number' => 'nullable|string|max:20',
+            'current_password' => 'nullable|required_with:new_password',
+            'new_password' => 'nullable|string|min:6|confirmed',
+        ]);
+
+        if ($request->filled('new_password')) {
+            if (!\Illuminate\Support\Facades\Hash::check($request->current_password, $admin->password)) {
+                return back()->withErrors(['current_password' => 'The current password you entered is incorrect.']);
+            }
+            $admin->password = \Illuminate\Support\Facades\Hash::make($request->new_password);
+        }
+
+        $admin->fullname     = $request->fullname;
+        $admin->email        = $request->email;
+        $admin->phone_number = $request->phone_number;
+        $admin->save();
+
+        return back()->with('success', 'Admin account details updated successfully!');
     }
 
     /**
@@ -105,6 +225,7 @@ class AuthController extends Controller
      */
     public function TenantChangePassword(Request $request)
     {
+        /** @var \App\Models\Tenants $tenant */
         $tenant = Auth::guard('tenant')->user();
         if (!$tenant) {
             return redirect()->route('tenant.login.page');
