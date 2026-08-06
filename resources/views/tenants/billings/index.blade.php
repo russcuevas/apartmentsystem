@@ -307,6 +307,111 @@
             color: #0369a1;
             border: 1px solid #bae6fd;
         }
+
+        .month-billings-grid {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        @media (max-width: 868px) {
+            html, body, .main-layout, .content-panel {
+                max-width: 100vw !important;
+                overflow-x: hidden !important;
+            }
+
+            .custom-table-card {
+                padding: 16px 12px;
+                max-width: 100% !important;
+                overflow-x: hidden !important;
+            }
+
+            .filter-controls-card {
+                padding: 14px 16px;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-group {
+                justify-content: space-between;
+                width: 100%;
+            }
+
+            .filter-select {
+                flex-grow: 1;
+            }
+
+            /* DataTables Mobile Responsive Controls */
+            .dataTables_wrapper {
+                width: 100% !important;
+                max-width: 100% !important;
+                overflow-x: hidden !important;
+            }
+
+            .dataTables_wrapper .dataTables_filter,
+            .dataTables_wrapper .dataTables_length,
+            .dataTables_wrapper .dataTables_info,
+            .dataTables_wrapper .dataTables_paginate {
+                float: none !important;
+                text-align: left !important;
+                width: 100% !important;
+                margin: 8px 0 !important;
+            }
+
+            .dataTables_wrapper .dataTables_filter label {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                width: 100% !important;
+                gap: 6px !important;
+                font-weight: 700 !important;
+            }
+
+            .dataTables_wrapper .dataTables_filter input {
+                width: 100% !important;
+                margin-left: 0 !important;
+                height: 40px !important;
+                border-radius: 8px !important;
+                border: 1.5px solid var(--border-color) !important;
+                padding: 6px 12px !important;
+                box-sizing: border-box !important;
+            }
+
+            .dataTables_wrapper .dataTables_paginate {
+                display: flex !important;
+                justify-content: center !important;
+                flex-wrap: wrap !important;
+                gap: 4px !important;
+            }
+
+            .modal-overlay {
+                padding: 10px;
+            }
+
+            .modal-container-xl {
+                width: 98vw;
+                max-height: 95vh;
+                border-radius: 12px;
+            }
+
+            .modal-header {
+                padding: 14px 16px;
+            }
+
+            .modal-body {
+                padding: 14px 16px;
+            }
+
+            .modal-footer {
+                padding: 12px 16px;
+            }
+
+            .month-billings-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+        }
     </style>
 </head>
 
@@ -477,20 +582,8 @@
                 </div>
                 <button type="button" class="modal-close-btn" id="closeMonthBillingsBtn">&times;</button>
             </div>
-            <div class="modal-body">
-                <div style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;">
-                    <table id="monthBillingsTable" class="display custom-table nowrap" style="width:100%">
-                        <thead>
-                            <tr>
-                                <th>My Details</th>
-                                <th>Statement Breakdown & Utility Documents</th>
-                            </tr>
-                        </thead>
-                        <tbody id="monthBillingsTableBody">
-                            <!-- Populated dynamically via JS -->
-                        </tbody>
-                    </table>
-                </div>
+            <div class="modal-body" id="monthBillingsModalBody">
+                <!-- Populated dynamically via JS -->
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn-secondary" id="closeMonthBillingsFooterBtn">Close</button>
@@ -913,60 +1006,51 @@
                     `;
                 }
 
-                const rowHtml = `
-                    <tr>
-                        <td style="vertical-align: top; width: 280px;">
-                            <div style="display: flex; align-items: flex-start; gap: 12px; padding: 4px 0;">
-                                <div style="width: 40px; height: 40px; border-radius: 10px; background: var(--primary-light); color: var(--primary); font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 1.05rem; flex-shrink: 0;">
+                const contentHtml = `
+                    <div class="month-billings-grid">
+                        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                            <div style="display: flex; align-items: flex-start; gap: 12px;">
+                                <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--primary-light); color: var(--primary); font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex-shrink: 0;">
                                     ${initial}
                                 </div>
                                 <div>
-                                    <strong style="font-size: 0.95rem; color: #0f172a; display: block;">${tenantDefaultName}</strong>
-                                    <div style="font-size: 0.78rem; color: #64748b; margin-top: 3px;">
-                                        📍 <span class="location-pill" style="font-size: 0.75rem;">${tenantDefaultLocation}</span>
+                                    <strong style="font-size: 1rem; color: #0f172a; display: block;">${tenantDefaultName}</strong>
+                                    <div style="font-size: 0.8rem; color: #64748b; margin-top: 4px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+                                        <span class="location-pill">📍 ${tenantDefaultLocation}</span>
+                                        <span class="room-pill">🚪 Room ${tenantDefaultRoom}</span>
                                     </div>
-                                    <div style="font-size: 0.78rem; color: #64748b; margin-top: 3px;">
-                                        🚪 Room: <span class="room-pill" style="font-size: 0.75rem;">${tenantDefaultRoom}</span>
-                                    </div>
-                                    <div style="margin-top: 10px; font-size: 0.78rem; color: #334155; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                                        <div>Total Billed: <strong style="color: #0f172a;">₱${totalBilledFormatted}</strong></div>
-                                        <div style="margin-top: 2px;">Total Paid: <strong style="color: #166534;">₱${totalPaidFormatted}</strong></div>
-                                        <div style="margin-top: 4px; padding-top: 4px; border-top: 1px dashed #cbd5e1; font-weight: 700;">
-                                            Balance Due: <strong style="color: ${data.total_balance > 0 ? '#dc2626' : '#166534'}; font-size: 0.88rem;">₱${totalBalFormatted}</strong>
-                                        </div>
-                                    </div>
-
-                                    ${data.total_balance > 0 ? `
-                                                                <a href="${submitPaymentRoute}" class="btn-submit-payment" style="width: 100%; justify-content: center; margin-top: 12px; font-size: 0.8rem; padding: 8px 12px;">
-                                                                    💳 Pay Remaining Balance
-                                                                </a>
-                                                            ` : ''}
                                 </div>
                             </div>
-                        </td>
-                        <td style="vertical-align: top;">
-                            <div style="display: flex; flex-direction: column;">
-                                ${cardsHtml}
+
+                            <div style="margin-top: 16px; font-size: 0.82rem; color: #334155; background: #f8fafc; padding: 14px; border-radius: 10px; border: 1px solid #e2e8f0;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                    <span>Total Billed:</span>
+                                    <strong style="color: #0f172a;">₱${totalBilledFormatted}</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                    <span>Total Paid:</span>
+                                    <strong style="color: #166534;">₱${totalPaidFormatted}</strong>
+                                </div>
+                                <div style="padding-top: 6px; border-top: 1px dashed #cbd5e1; display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-weight: 700; color: #475569;">Balance Due:</span>
+                                    <strong style="color: ${data.total_balance > 0 ? '#dc2626' : '#166534'}; font-size: 0.95rem;">₱${totalBalFormatted}</strong>
+                                </div>
                             </div>
-                        </td>
-                    </tr>
+
+                            ${data.total_balance > 0 ? `
+                                <a href="${submitPaymentRoute}" class="btn-submit-payment" style="width: 100%; justify-content: center; margin-top: 14px; font-size: 0.85rem; padding: 10px 14px;">
+                                    💳 Pay Remaining Balance
+                                </a>
+                            ` : ''}
+                        </div>
+
+                        <div style="display: flex; flex-direction: column;">
+                            ${cardsHtml}
+                        </div>
+                    </div>
                 `;
-                tbody.append(rowHtml);
 
-                monthBillingsDataTable = $('#monthBillingsTable').DataTable({
-                    responsive: false,
-                    scrollX: true,
-                    autoWidth: false,
-                    bLengthChange: false,
-                    lengthChange: false,
-                    pageLength: 5,
-                    language: {
-                        search: "Filter Statements:",
-                        emptyTable: `No billing statements found for ${month} ${year}.`,
-                        zeroRecords: `No billing statements found for ${month} ${year}.`
-                    }
-                });
-
+                $('#monthBillingsModalBody').html(contentHtml);
                 openModal(monthBillingsModal);
             });
         });

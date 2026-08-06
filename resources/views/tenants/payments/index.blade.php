@@ -297,6 +297,99 @@
             font-weight: 700;
             border: 1px solid #bae6fd;
         }
+
+        @media (max-width: 868px) {
+            html, body, .main-layout, .content-panel {
+                max-width: 100vw !important;
+                overflow-x: hidden !important;
+            }
+
+            .custom-table-card {
+                padding: 16px 12px;
+                max-width: 100% !important;
+                overflow-x: hidden !important;
+            }
+
+            .filter-controls-card {
+                padding: 14px 16px;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-group {
+                justify-content: space-between;
+                width: 100%;
+            }
+
+            .filter-select {
+                flex-grow: 1;
+            }
+
+            /* DataTables Mobile Responsive Controls */
+            .dataTables_wrapper {
+                width: 100% !important;
+                max-width: 100% !important;
+                overflow-x: hidden !important;
+            }
+
+            .dataTables_wrapper .dataTables_filter,
+            .dataTables_wrapper .dataTables_length,
+            .dataTables_wrapper .dataTables_info,
+            .dataTables_wrapper .dataTables_paginate {
+                float: none !important;
+                text-align: left !important;
+                width: 100% !important;
+                margin: 8px 0 !important;
+            }
+
+            .dataTables_wrapper .dataTables_filter label {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                width: 100% !important;
+                gap: 6px !important;
+                font-weight: 700 !important;
+            }
+
+            .dataTables_wrapper .dataTables_filter input {
+                width: 100% !important;
+                margin-left: 0 !important;
+                height: 40px !important;
+                border-radius: 8px !important;
+                border: 1.5px solid var(--border-color) !important;
+                padding: 6px 12px !important;
+                box-sizing: border-box !important;
+            }
+
+            .dataTables_wrapper .dataTables_paginate {
+                display: flex !important;
+                justify-content: center !important;
+                flex-wrap: wrap !important;
+                gap: 4px !important;
+            }
+
+            .modal-overlay {
+                padding: 10px;
+            }
+
+            .modal-container-lg, .modal-container-xl {
+                width: 98vw;
+                max-height: 95vh;
+                border-radius: 12px;
+            }
+
+            .modal-header {
+                padding: 14px 16px;
+            }
+
+            .modal-body {
+                padding: 14px 16px;
+            }
+
+            .modal-footer {
+                padding: 12px 16px;
+            }
+        }
     </style>
 </head>
 
@@ -612,8 +705,8 @@
                             </label>
                             <select name="type" id="paymentTypeSelect" class="filter-select"
                                 style="width: 100%; height: 42px;" required>
-                                <option value="ECASH" selected>ECASH (GCash / Maya / Bank Transfer)</option>
-                                <option value="CASH">CASH (Over-the-Counter / Handed to Admin)</option>
+                                <option value="CASH" selected>CASH (Over-the-Counter / Handed to Admin)</option>
+                                <option value="ECASH">ECASH (GCash / Maya / Bank Transfer)</option>
                             </select>
                         </div>
 
@@ -627,15 +720,38 @@
                         </div>
                     </div>
 
+                    <!-- ECASH QR Code Info Box (Shown when ECASH is selected) -->
+                    <div id="ecashQrGroup"
+                        style="display: none; background: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%); border: 1.5px solid #0d9488; border-radius: 12px; padding: 18px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.08);">
+                        <div
+                            style="font-size: 0.9rem; font-weight: 800; color: #0f766e; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                            📲 ECASH (GCash / Maya) Payment QR Code
+                        </div>
+                        <p style="font-size: 0.8rem; color: #334155; margin-bottom: 12px;">
+                            Scan the QR code below using your <strong>GCash / Maya app</strong> to pay your bill
+                            directly.
+                        </p>
+                        <div
+                            style="display: inline-block; background: #ffffff; padding: 12px; border-radius: 12px; border: 1px solid #cbd5e1; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                            <img src="{{ asset('uploads/ecash/gcash-qr.jpg') }}" class="preview-clickable-img"
+                                style="max-height: 260px; max-width: 100%; border-radius: 8px; cursor: pointer; transition: transform 0.2s; display: block; margin: 0 auto;"
+                                title="GCash QR Code - Click to zoom in full size" alt="GCash QR Code">
+                            <div
+                                style="font-size: 0.78rem; color: #166534; font-weight: 700; margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                                🔍 Click QR Code image to view full size / zoom in
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- 4. Handed To / Received By Name (Shown only when CASH is selected) -->
                     <div id="getFullnameGroup"
-                        style="display: none; background: #fff7ed; border: 1px solid #ffedd5; padding: 16px; border-radius: 12px; margin-bottom: 20px;">
+                        style="display: block; background: #fff7ed; border: 1px solid #ffedd5; padding: 16px; border-radius: 12px; margin-bottom: 20px;">
                         <label
                             style="display: block; font-size: 0.84rem; font-weight: 700; color: #c2410c; margin-bottom: 6px;">
                             Handed / Received By (Full Name) <span style="color: #ef4444;">*</span>
                         </label>
                         <input type="text" name="get_fullname" id="getFullnameInput" class="filter-select"
-                            style="width: 100%; height: 42px;"
+                            style="width: 100%; height: 42px;" required
                             placeholder="Type the full name of admin/person who received cash...">
                     </div>
 
@@ -845,8 +961,10 @@
                 if (modal) modal.classList.remove('active');
             }
 
-            if (openAddPaymentBtn) openAddPaymentBtn.addEventListener('click', () => openModal(
-                addTenantPaymentModal));
+            if (openAddPaymentBtn) openAddPaymentBtn.addEventListener('click', () => {
+                openModal(addTenantPaymentModal);
+                $('#paymentTypeSelect').trigger('change');
+            });
             if (closeAddPaymentBtn) closeAddPaymentBtn.addEventListener('click', () => closeModal(
                 addTenantPaymentModal));
             if (cancelAddPaymentBtn) cancelAddPaymentBtn.addEventListener('click', () => closeModal(
@@ -904,9 +1022,11 @@
                 if (val === 'CASH') {
                     $('#getFullnameGroup').slideDown(150);
                     $('#getFullnameInput').prop('required', true);
+                    $('#ecashQrGroup').slideUp(150);
                 } else {
                     $('#getFullnameGroup').slideUp(150);
                     $('#getFullnameInput').prop('required', false).val('');
+                    $('#ecashQrGroup').slideDown(150);
                 }
             });
 
@@ -1006,7 +1126,7 @@
                             $('#uploadProofOfBillingWrapper').show();
                             $('#proofOfBillingLabelText').html(
                                 'Upload Utility Bill Statement (Proof of Billing) <span style="color: #ef4444;">*</span>'
-                                );
+                            );
                             $('#proofOfBillingInput').prop('required', false);
                         }
                     } else {
@@ -1023,7 +1143,7 @@
                         $('#uploadProofOfBillingWrapper').show();
                         $('#proofOfBillingLabelText').html(
                             'Upload Utility Bill Statement (Proof of Billing) <span style="color: #ef4444;">*</span>'
-                            );
+                        );
                         $('#proofOfBillingInput').prop('required', true);
                         $('#utilityAmountContainer').show();
                         $('#utilityAmountInput').prop('required', true);
