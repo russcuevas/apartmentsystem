@@ -27,7 +27,13 @@ class AdminBillingsController extends Controller
         $locations = Locations::all();
         $selectedLocation = $selectedLocationId ? Locations::find($selectedLocationId) : null;
 
-        $tenantsQuery = Tenants::with(['location', 'rentInformation']);
+        $activeTenantFilter = function ($q) {
+            $q->whereHas('rentInformation', function ($sub) {
+                $sub->where('move_out', false)->orWhereNull('move_out');
+            });
+        };
+
+        $tenantsQuery = Tenants::with(['location', 'rentInformation'])->where($activeTenantFilter);
         if ($selectedLocationId) {
             $tenantsQuery->where('location_id', $selectedLocationId);
         }
@@ -50,7 +56,8 @@ class AdminBillingsController extends Controller
         ];
 
         // 1. Fetch Rent Billings
-        $rentQuery = TenantBillingsRent::with(['tenant.location', 'tenant.rentInformation', 'payments']);
+        $rentQuery = TenantBillingsRent::with(['tenant.location', 'tenant.rentInformation', 'payments'])
+            ->whereHas('tenant', $activeTenantFilter);
         if ($selectedLocationId) {
             $rentQuery->whereHas('tenant', function ($q) use ($selectedLocationId) {
                 $q->where('location_id', $selectedLocationId);
@@ -62,7 +69,8 @@ class AdminBillingsController extends Controller
         $rentBillings = $rentQuery->get();
 
         // 2. Fetch Electricity Billings
-        $elecQuery = TenantBillingsElectricity::with(['tenant.location', 'tenant.rentInformation', 'payments']);
+        $elecQuery = TenantBillingsElectricity::with(['tenant.location', 'tenant.rentInformation', 'payments'])
+            ->whereHas('tenant', $activeTenantFilter);
         if ($selectedLocationId) {
             $elecQuery->whereHas('tenant', function ($q) use ($selectedLocationId) {
                 $q->where('location_id', $selectedLocationId);
@@ -74,7 +82,8 @@ class AdminBillingsController extends Controller
         $elecBillings = $elecQuery->get();
 
         // 3. Fetch Water Billings
-        $waterQuery = TenantBillingsWater::with(['tenant.location', 'tenant.rentInformation', 'payments']);
+        $waterQuery = TenantBillingsWater::with(['tenant.location', 'tenant.rentInformation', 'payments'])
+            ->whereHas('tenant', $activeTenantFilter);
         if ($selectedLocationId) {
             $waterQuery->whereHas('tenant', function ($q) use ($selectedLocationId) {
                 $q->where('location_id', $selectedLocationId);
@@ -86,7 +95,7 @@ class AdminBillingsController extends Controller
         $waterBillings = $waterQuery->get();
 
         // 4. Fetch All Payments
-        $allPayments = TenantPayments::with('receiver')->get();
+        $allPayments = TenantPayments::with('receiver')->whereHas('tenant', $activeTenantFilter)->get();
 
         // Aggregate statistics per month combined across Rent, Electricity, and Water
         $monthsData = collect($allMonths)->map(function ($monthName) use ($rentBillings, $elecBillings, $waterBillings, $allPayments) {

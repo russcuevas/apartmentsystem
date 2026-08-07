@@ -39,7 +39,9 @@ class AdminPaymentsController extends Controller
             'billingRent',
             'billingElectricity',
             'billingWater'
-        ]);
+        ])->whereHas('tenant.rentInformation', function ($sub) {
+            $sub->where('move_out', false)->orWhereNull('move_out');
+        });
 
         if ($selectedLocationId) {
             $paymentsQuery->whereHas('tenant', function ($q) use ($selectedLocationId) {

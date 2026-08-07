@@ -198,8 +198,14 @@ class AuthController extends Controller
         $credentials = $request->only('phone_number', 'password');
 
         if (Auth::guard('tenant')->attempt($credentials, $request->filled('remember'))) {
-            $request->session()->regenerate();
             $tenant = Auth::guard('tenant')->user();
+            if ($tenant->rentInformation && $tenant->rentInformation->move_out) {
+                Auth::guard('tenant')->logout();
+                return back()->withErrors([
+                    'phone_number' => 'Your account has been marked as Moved Out. You can no longer log in.',
+                ])->withInput($request->only('phone_number'));
+            }
+            $request->session()->regenerate();
             return redirect()->route('tenant.dashboard.page')->with('success', 'Welcome, ' . trim($tenant->fullname));
         }
 

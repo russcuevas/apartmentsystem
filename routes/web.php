@@ -6,6 +6,7 @@ use App\Http\Controllers\admin\LocationsController;
 use App\Http\Controllers\admin\TenantsController;
 use App\Http\Controllers\admin\AdminBillingsController;
 use App\Http\Controllers\admin\AdminPaymentsController;
+use App\Http\Controllers\admin\AdminMoveOutController;
 use App\Http\Controllers\tenant\TenantDashboardController;
 use App\Http\Controllers\tenant\TenantBillingsController;
 use App\Http\Controllers\tenant\TenantPaymentsController;
@@ -40,6 +41,8 @@ Route::middleware(['admin'])->group(function () {
     Route::get('/admin/locations/{id}', [LocationsController::class, 'LocationsPage'])->name('admin.locations.page');
     Route::get('/admin/tenants', [TenantsController::class, 'TenantPage'])->name('admin.tenants.page');
     Route::post('/admin/tenants', [TenantsController::class, 'store'])->name('admin.tenants.store');
+    Route::post('/admin/tenants/{id}/move-out', [TenantsController::class, 'moveOut'])->name('admin.tenants.moveout');
+    Route::get('/admin/move-out', [AdminMoveOutController::class, 'index'])->name('admin.move_out.index');
     Route::get('/admin/billings', [AdminBillingsController::class, 'index'])->name('admin.billings.index');
     Route::post('/admin/billings', [AdminBillingsController::class, 'store'])->name('admin.billings.store');
     Route::get('/admin/payments', [AdminPaymentsController::class, 'index'])->name('admin.payments.index');

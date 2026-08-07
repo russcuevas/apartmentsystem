@@ -22,6 +22,16 @@ class TenantMiddleware
             ]);
         }
 
+        $tenant = Auth::guard('tenant')->user();
+        if ($tenant && $tenant->rentInformation && $tenant->rentInformation->move_out) {
+            Auth::guard('tenant')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            return redirect()->route('tenant.login.page')->withErrors([
+                'phone_number' => 'Your account has been marked as Moved Out. Access denied.',
+            ]);
+        }
+
         return $next($request);
     }
 }

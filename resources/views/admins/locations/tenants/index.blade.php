@@ -161,6 +161,7 @@
                                         <button type="button"
                                             class="action-btn-sm action-btn-info view-tenant-details-btn"
                                             data-tenant="{{ json_encode([
+                                                'id' => $tenant->id,
                                                 'fullname' => $tenant->fullname,
                                                 'phone_number' => $tenant->phone_number,
                                                 'location_name' => $tenant->location->location_name ?? 'N/A',
@@ -170,6 +171,7 @@
                                                     ? \Carbon\Carbon::parse($tenant->rentInformation->start_date)->format('M d, Y')
                                                     : 'N/A',
                                                 'total_balance' => number_format($tenant->total_outstanding_balance ?? 0, 2),
+                                                'raw_total_balance' => (float) ($tenant->total_outstanding_balance ?? 0),
                                                 'ledger' => $tenant->ledger_data ?? [],
                                             ]) }}">
                                             <svg width="14" height="14" fill="none" stroke="currentColor"
@@ -364,7 +366,23 @@
                     </table>
                 </div>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <form id="moveOutForm" action="" method="POST" style="display: none;">
+                        @csrf
+                        <button type="submit" class="btn-danger-action"
+                            style="background: linear-gradient(135deg, #ef4444, #dc2626); color: #ffffff; border: none; padding: 9px 18px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25); transition: all 0.2s;"
+                            onclick="return confirm('Are you sure you want to mark this tenant as Moved Out? They will no longer be listed and cannot log in.')">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
+                                </path>
+                            </svg>
+                            Move Out Tenant
+                        </button>
+                    </form>
+                </div>
                 <button type="button" class="btn-secondary" id="closeTenantDetailsFooterBtn">Close</button>
             </div>
         </div>
@@ -530,6 +548,16 @@
                 $('#modalTenantRent').text(`₱${data.monthly_rental}`);
                 $('#modalTenantTotalBalance').text(`₱${data.total_balance}`);
 
+                const rawBal = typeof data.raw_total_balance !== 'undefined'
+                    ? parseFloat(data.raw_total_balance)
+                    : parseFloat(String(data.total_balance).replace(/,/g, '') || 0);
+
+                if (rawBal <= 0 && data.id) {
+                    $('#moveOutForm').attr('action', `/admin/tenants/${data.id}/move-out`).show();
+                } else {
+                    $('#moveOutForm').hide();
+                }
+
                 $('#tenantDetailsModalTitle').text(`Overall Statement Ledger - ${data.fullname}`);
 
                 if ($.fn.DataTable.isDataTable('#tenantLedgerTable')) {
@@ -636,7 +664,7 @@
                         const rowHtml = `
                             <tr>
                                 <td>
-                                    <strong style="font-size: 0.92rem; color: #0f172a;">${row.month} 2026</strong>
+                                    <strong style="font-size: 0.92rem; color: #0f172a;">${row.month} ${row.year || ''}</strong>
                                 </td>
                                 <td>
                                     <div style="font-size: 0.82rem; line-height: 1.45;">

@@ -14,6 +14,7 @@ class TenantsRentInformation extends Model
         'room',
         'monthly_rental',
         'start_date',
+        'move_out',
     ];
 
     public function tenant()

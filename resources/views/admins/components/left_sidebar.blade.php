@@ -52,7 +52,7 @@
             </li> --}}
 
             <!-- Locations Dropdown Option -->
-            <li class="menu-item-dropdown {{ request()->is('admin/locations/*') || request()->is('admin/payments*') || request()->routeIs('admin.payments.index', 'admin.billings.index', 'admin.tenants.page') || request()->has('location_id') ? 'open' : '' }}"
+            <li class="menu-item-dropdown {{ request()->is('admin/locations/*') || request()->is('admin/payments*') || request()->routeIs('admin.payments.index', 'admin.billings.index', 'admin.tenants.page', 'admin.move_out.index') || request()->has('location_id') ? 'open' : '' }}"
                 id="locationsMenuDropdown">
                 <a class="menu-item-link" id="locationsToggle">
                     <span class="menu-item-left">
@@ -81,7 +81,7 @@
                     @endphp
                     @forelse ($backendLocations as $loc)
                         <li
-                            class="location-sub-dropdown {{ request()->is('admin/locations/' . $loc->id . '*') || (request()->routeIs('admin.tenants.page', 'admin.billings.index', 'admin.payments.index') && (request('location_id') == $loc->id || (!request('location_id') && $loop->first))) ? 'open' : '' }}">
+                            class="location-sub-dropdown {{ request()->is('admin/locations/' . $loc->id . '*') || (request()->routeIs('admin.tenants.page', 'admin.billings.index', 'admin.payments.index', 'admin.move_out.index') && (request('location_id') == $loc->id || (!request('location_id') && $loop->first))) ? 'open' : '' }}">
                             <a href="javascript:void(0)" class="location-sub-toggle">
                                 <span>{{ $loc->location_name }}</span>
                                 <svg class="chevron-icon-sm" fill="none" stroke="currentColor" stroke-width="2"
@@ -112,6 +112,12 @@
                                     <a href="{{ route('admin.payments.index', ['location_id' => $loc->id]) }}"
                                         class="nested-link {{ (request()->routeIs('admin.payments.index') || request()->is('admin/payments*')) && (request('location_id') == $loc->id || (!request('location_id') && $loop->first)) ? 'active' : '' }}">
                                         Payments
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('admin.move_out.index', ['location_id' => $loc->id]) }}"
+                                        class="nested-link {{ request()->routeIs('admin.move_out.index') && (request('location_id') == $loc->id || (!request('location_id') && $loop->first)) ? 'active' : '' }}">
+                                        Move Out
                                     </a>
                                 </li>
                             </ul>

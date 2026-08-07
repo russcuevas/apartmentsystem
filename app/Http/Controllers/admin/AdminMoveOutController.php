@@ -4,18 +4,15 @@ namespace App\Http\Controllers\admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Tenants;
-use App\Models\TenantsRentInformation;
 use App\Models\Locations;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
 
-class TenantsController extends Controller
+class AdminMoveOutController extends Controller
 {
     /**
-     * Display the Tenants listing with optional location filtering.
+     * Display the Moved Out Tenants directory.
      */
-    public function TenantPage(Request $request)
+    public function index(Request $request)
     {
         $locationId = $request->get('location_id');
 
@@ -25,9 +22,9 @@ class TenantsController extends Controller
             'billingsRent',
             'billingsElectricity',
             'billingsWater',
-            'payments'
+            'payments.receiver'
         ])->whereHas('rentInformation', function ($q) {
-            $q->where('move_out', false)->orWhereNull('move_out');
+            $q->where('move_out', true);
         });
 
         if ($locationId) {
@@ -51,39 +48,74 @@ class TenantsController extends Controller
             $payments = $tenant->payments;
 
             $ledger = [];
+            $documents = [];
+
             $runningRentBal = 0;
             $runningElecBal = 0;
             $runningWaterBal = 0;
 
             foreach ($allMonths as $monthName) {
-                $r = $rentBills->first(function ($b) use ($monthName) {
-                    return strcasecmp(trim($b->billing_month), trim($monthName)) === 0;
-                });
+                $r = $rentBills->first(fn($b) => strcasecmp(trim($b->billing_month), trim($monthName)) === 0);
+                $e = $elecBills->first(fn($b) => strcasecmp(trim($b->billing_month), trim($monthName)) === 0);
+                $w = $waterBills->first(fn($b) => strcasecmp(trim($b->billing_month), trim($monthName)) === 0);
 
-                $e = $elecBills->first(function ($b) use ($monthName) {
-                    return strcasecmp(trim($b->billing_month), trim($monthName)) === 0;
-                });
+                // Collect electricity proof document if available
+                if ($e && !empty($e->proof_of_billing)) {
+                    $documents[] = [
+                        'type'        => 'Electricity Bill Document',
+                        'category'    => 'Electricity',
+                        'month'       => $monthName,
+                        'year'        => $e->billing_year ?? date('Y', strtotime($e->created_at)),
+                        'url'         => $e->proof_of_billing,
+                        'date_added'  => $e->created_at ? $e->created_at->format('M d, Y') : 'N/A',
+                    ];
+                }
 
-                $w = $waterBills->first(function ($b) use ($monthName) {
-                    return strcasecmp(trim($b->billing_month), trim($monthName)) === 0;
-                });
+                // Collect water proof document if available
+                if ($w && !empty($w->proof_of_billing)) {
+                    $documents[] = [
+                        'type'        => 'Water Bill Document',
+                        'category'    => 'Water',
+                        'month'       => $monthName,
+                        'year'        => $w->billing_year ?? date('Y', strtotime($w->created_at)),
+                        'url'         => $w->proof_of_billing,
+                        'date_added'  => $w->created_at ? $w->created_at->format('M d, Y') : 'N/A',
+                    ];
+                }
 
                 $monthApprovedPayments = $payments->filter(function ($p) use ($monthName) {
                     return strcasecmp(trim($p->billing_month), trim($monthName)) === 0
                         && in_array($p->status, ['Approved', 'Accepted']);
                 });
 
+                // Collect payment proof documents
+                foreach ($payments->filter(fn($p) => strcasecmp(trim($p->billing_month), trim($monthName)) === 0) as $p) {
+                    $proofUrl = $p->proof_of_payment ?? $p->proof_of_billing ?? null;
+                    if (!empty($proofUrl)) {
+                        $documents[] = [
+                            'type'        => 'Payment Proof Receipt (' . ($p->payment_type ?? 'Payment') . ')',
+                            'category'    => $p->payment_type ?? 'Payment',
+                            'month'       => $monthName,
+                            'year'        => $p->billing_year ?? date('Y', strtotime($p->created_at)),
+                            'url'         => $proofUrl,
+                            'amount'      => number_format($p->amount, 2),
+                            'status'      => $p->status,
+                            'date_added'  => $p->created_at ? $p->created_at->format('M d, Y') : 'N/A',
+                        ];
+                    }
+                }
+
                 $mRentPaid  = $monthApprovedPayments->filter(fn($p) => strcasecmp(trim($p->payment_type ?? ''), 'Rent') === 0)->sum('amount');
                 $mElecPaid  = $monthApprovedPayments->filter(fn($p) => strcasecmp(trim($p->payment_type ?? ''), 'Electricity') === 0)->sum('amount');
                 $mWaterPaid = $monthApprovedPayments->filter(fn($p) => strcasecmp(trim($p->payment_type ?? ''), 'Water') === 0)->sum('amount');
                 $mOtherPaid = $monthApprovedPayments->filter(fn($p) => !in_array(strtolower(trim($p->payment_type ?? '')), ['rent', 'electricity', 'water']))->sum('amount');
 
-                $isRentPending = $r && strcasecmp($r->status ?? '', 'Pending') === 0;
-                $isElecPending = $e && strcasecmp($e->status ?? '', 'Pending') === 0;
+                $isRentPending  = $r && strcasecmp($r->status ?? '', 'Pending') === 0;
+                $isElecPending  = $e && strcasecmp($e->status ?? '', 'Pending') === 0;
                 $isWaterPending = $w && strcasecmp($w->status ?? '', 'Pending') === 0;
 
-                $rentAmount = (float) ($r->rent_amount ?? 0);
-                $elecAmount = $isElecPending ? 0 : (float) ($e->rent_amount ?? 0);
+                $rentAmount  = (float) ($r->rent_amount ?? 0);
+                $elecAmount  = $isElecPending ? 0 : (float) ($e->rent_amount ?? 0);
                 $waterAmount = $isWaterPending ? 0 : (float) ($w->rent_amount ?? 0);
 
                 $mTotalPaid = (float) $monthApprovedPayments->sum('amount');
@@ -169,60 +201,11 @@ class TenantsController extends Controller
             }
 
             $tenant->ledger_data = $ledger;
+            $tenant->documents_data = $documents;
             $tenant->total_outstanding_balance = $runningRentBal + $runningElecBal + $runningWaterBal;
             return $tenant;
         });
 
-        return view('admins.locations.tenants.index', compact('tenants', 'locations', 'selectedLocation', 'locationId'));
-    }
-
-    /**
-     * Store a newly created Tenant and their Rent Information.
-     */
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'fullname'       => 'required|string|max:255',
-            'phone_number'   => 'required|string|max:20|unique:tenants,phone_number',
-            'password'       => 'required|string|min:6',
-            'location_id'    => 'required|exists:locations,id',
-            'room'           => 'required|string|max:255',
-            'monthly_rental' => 'required|numeric|min:0',
-            'start_date'     => 'required|date',
-        ]);
-
-        DB::transaction(function () use ($validated) {
-            $tenant = Tenants::create([
-                'fullname'     => $validated['fullname'],
-                'phone_number' => $validated['phone_number'],
-                'password'     => Hash::make($validated['password']),
-                'location_id'  => $validated['location_id'],
-            ]);
-
-            TenantsRentInformation::create([
-                'tenant_id'      => $tenant->id,
-                'room'           => $validated['room'],
-                'monthly_rental' => $validated['monthly_rental'],
-                'start_date'     => $validated['start_date'],
-            ]);
-        });
-
-        return redirect()->back()->with('success', 'Tenant and rent information created successfully!');
-    }
-
-    /**
-     * Mark a tenant as Moved Out.
-     */
-    public function moveOut(Request $request, $id)
-    {
-        $tenant = Tenants::findOrFail($id);
-        $tenantRentInfo = TenantsRentInformation::where('tenant_id', $tenant->id)->first();
-
-        if ($tenantRentInfo) {
-            $tenantRentInfo->update(['move_out' => true]);
-        }
-
-        return redirect()->back()->with('success', 'Tenant tagged as Moved Out successfully!');
+        return view('admins.locations.move_out.index', compact('tenants', 'locations', 'selectedLocation', 'locationId'));
     }
 }
-
