@@ -21,6 +21,7 @@ class TenantPayments extends Model
         'electricity_amount',
         'water_amount',
         'billing_month',
+        'billing_year',
         'amount',
         'type',
         'get_fullname',

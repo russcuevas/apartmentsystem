@@ -12,6 +12,7 @@ class TenantBillingsRent extends Model
     protected $fillable = [
         'tenant_id',
         'billing_month',
+        'billing_year',
         'due_date',
         'rent_amount',
         'balance',

@@ -35,27 +35,21 @@ class TenantBillingsController extends Controller
         // 1. Fetch Tenant's Rent Billings
         $rentBillings = TenantBillingsRent::with(['payments'])
             ->where('tenant_id', $tenant->id)
-            ->where(function ($q) use ($selectedYear) {
-                $q->whereYear('due_date', $selectedYear)->orWhereYear('created_at', $selectedYear);
-            })->get();
+            ->where('billing_year', (int) $selectedYear)->get();
 
         // 2. Fetch Tenant's Electricity Billings
         $elecBillings = TenantBillingsElectricity::with(['payments'])
             ->where('tenant_id', $tenant->id)
-            ->where(function ($q) use ($selectedYear) {
-                $q->whereYear('due_date', $selectedYear)->orWhereYear('created_at', $selectedYear);
-            })->get();
+            ->where('billing_year', (int) $selectedYear)->get();
 
         // 3. Fetch Tenant's Water Billings
         $waterBillings = TenantBillingsWater::with(['payments'])
             ->where('tenant_id', $tenant->id)
-            ->where(function ($q) use ($selectedYear) {
-                $q->whereYear('due_date', $selectedYear)->orWhereYear('created_at', $selectedYear);
-            })->get();
+            ->where('billing_year', (int) $selectedYear)->get();
 
         // 4. Fetch Tenant's All Payments for the year
         $allPayments = TenantPayments::where('tenant_id', $tenant->id)
-            ->whereYear('created_at', $selectedYear)
+            ->where('billing_year', (int) $selectedYear)
             ->orderBy('created_at', 'desc')
             ->get();
 

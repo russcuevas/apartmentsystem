@@ -247,6 +247,18 @@
                             </div>
                         </div>
 
+                        <!-- Billing Year -->
+                        <div>
+                            <label class="form-label">Billing Year <span class="req">*</span></label>
+                            <select name="billing_year" class="form-input-custom" required>
+                                @foreach ($availableYears as $year)
+                                    <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>
+                                        {{ $year }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
                         <!-- Due Date -->
                         <div>
                             <label class="form-label">Due Date <span class="req">*</span></label>

@@ -48,9 +48,7 @@ class AdminPaymentsController extends Controller
         }
 
         if ($selectedYear) {
-            $paymentsQuery->where(function ($q) use ($selectedYear) {
-                $q->whereYear('created_at', $selectedYear);
-            });
+            $paymentsQuery->where('billing_year', (int) $selectedYear);
         }
 
         $allPayments = $paymentsQuery->orderBy('created_at', 'desc')->get();

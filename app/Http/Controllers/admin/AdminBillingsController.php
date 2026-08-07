@@ -57,9 +57,7 @@ class AdminBillingsController extends Controller
             });
         }
         if ($selectedYear) {
-            $rentQuery->where(function ($q) use ($selectedYear) {
-                $q->whereYear('due_date', $selectedYear)->orWhereYear('created_at', $selectedYear);
-            });
+            $rentQuery->where('billing_year', (int) $selectedYear);
         }
         $rentBillings = $rentQuery->get();
 
@@ -71,9 +69,7 @@ class AdminBillingsController extends Controller
             });
         }
         if ($selectedYear) {
-            $elecQuery->where(function ($q) use ($selectedYear) {
-                $q->whereYear('due_date', $selectedYear)->orWhereYear('created_at', $selectedYear);
-            });
+            $elecQuery->where('billing_year', (int) $selectedYear);
         }
         $elecBillings = $elecQuery->get();
 
@@ -85,9 +81,7 @@ class AdminBillingsController extends Controller
             });
         }
         if ($selectedYear) {
-            $waterQuery->where(function ($q) use ($selectedYear) {
-                $q->whereYear('due_date', $selectedYear)->orWhereYear('created_at', $selectedYear);
-            });
+            $waterQuery->where('billing_year', (int) $selectedYear);
         }
         $waterBillings = $waterQuery->get();
 
@@ -258,6 +252,7 @@ class AdminBillingsController extends Controller
         $request->validate([
             'tenant_id'        => 'required|exists:tenants,id',
             'billing_month'    => 'required|string',
+            'billing_year'     => 'nullable|integer|min:2000|max:2100',
             'due_date'         => 'required|date',
             'rent_amount'      => 'required|numeric|min:0',
             'proof_of_billing' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
@@ -273,10 +268,12 @@ class AdminBillingsController extends Controller
         }
 
         $balance = ($request->status === 'Paid') ? 0.00 : (float) $request->rent_amount;
+        $billingYear = (int) ($request->billing_year ?? date('Y', strtotime($request->due_date)));
 
         TenantBillingsRent::create([
             'tenant_id'        => $request->tenant_id,
             'billing_month'    => $request->billing_month,
+            'billing_year'     => $billingYear,
             'due_date'         => $request->due_date,
             'rent_amount'      => $request->rent_amount,
             'balance'          => $balance,

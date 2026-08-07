@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('room');
             $table->decimal('monthly_rental', 10, 2);
             $table->date('start_date');
+            $table->boolean('move_out')->nullable();
             $table->timestamps();
         });
     }

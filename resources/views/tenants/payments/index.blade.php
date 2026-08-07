@@ -531,11 +531,11 @@
         <div class="modal-container-lg" style="max-width: 720px;">
             <div class="modal-header">
                 <div>
-                    <h3 class="modal-title">Submit Payment</h3>
+                    <h3 class="modal-title">Submit Payment (Year {{ $selectedYear }})</h3>
                     <p style="font-size: 0.82rem; color: #64748b; margin-top: 2px;">
                         Tenant: <strong>{{ $tenant->fullname }}</strong> | Room:
                         <strong>{{ $tenant->rentInformation->room ?? 'N/A' }}</strong>
-                        ({{ $tenant->location->location_name ?? 'N/A' }})
+                        ({{ $tenant->location->location_name ?? 'N/A' }}) | Billed Year: <strong>{{ $selectedYear }}</strong>
                     </p>
                 </div>
                 <button type="button" class="modal-close-btn" id="closeAddPaymentBtn">&times;</button>
@@ -584,9 +584,9 @@
                         </ul>
                     </div>
 
-                    <!-- 1. Category & Billing Month (2 Columns) -->
+                    <!-- 1. Category, Billing Month & Billing Year (3 Columns) -->
                     <div
-                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 20px;">
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px;">
                         <div>
                             <label
                                 style="display: block; font-size: 0.84rem; font-weight: 700; color: #334155; margin-bottom: 6px;">
@@ -605,11 +605,26 @@
                                 style="display: block; font-size: 0.84rem; font-weight: 700; color: #334155; margin-bottom: 6px;">
                                 Billing Month <span style="color: #ef4444;">*</span>
                             </label>
-                            <select name="billing_month" class="filter-select" style="width: 100%; height: 42px;"
+                            <select name="billing_month" id="paymentBillingMonthSelect" class="filter-select" style="width: 100%; height: 42px;"
                                 required>
                                 @foreach ($allMonths as $m)
                                     <option value="{{ $m }}" {{ date('F') == $m ? 'selected' : '' }}>
                                         {{ $m }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div>
+                            <label
+                                style="display: block; font-size: 0.84rem; font-weight: 700; color: #334155; margin-bottom: 6px;">
+                                Billing Year <span style="color: #ef4444;">*</span>
+                            </label>
+                            <select name="billing_year" id="paymentBillingYearSelect" class="filter-select" style="width: 100%; height: 42px;"
+                                required>
+                                @foreach ($availableYears as $year)
+                                    <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>
+                                        {{ $year }}
                                     </option>
                                 @endforeach
                             </select>
@@ -1039,13 +1054,14 @@
             function updateBillingSummaryView() {
                 const category = $('#paymentCategorySelect').val();
                 const month = $('select[name="billing_month"]').val();
+                const year = $('select[name="billing_year"]').val();
 
-                if (!category || !month || !tenantBillingsSummary[month]) {
+                if (!category || !month || !year || !tenantBillingsSummary[year] || !tenantBillingsSummary[year][month]) {
                     $('#existingBillInfoBox').slideUp(150);
                     return;
                 }
 
-                const catData = tenantBillingsSummary[month][category];
+                const catData = tenantBillingsSummary[year][month][category];
                 if (!catData) {
                     $('#existingBillInfoBox').slideUp(150);
                     return;
@@ -1070,7 +1086,7 @@
                 });
 
                 if (hasBill && totalAmt > 0) {
-                    $('#existingBillTitle').text(`📄 Existing ${category} Billing Statement for ${month}`);
+                    $('#existingBillTitle').text(`📄 Existing ${category} Billing Statement for ${month} ${year}`);
                     $('#existingBillTotal').text(`₱${totalFormatted}`);
                     $('#existingBillPaid').text(`₱${paidFormatted}`);
                     $('#existingBillBalance').text(`₱${balFormatted}`);
@@ -1161,11 +1177,12 @@
                         $('#uploadProofOfBillingWrapper').hide();
                         $('#proofOfBillingInput').prop('required', false);
                         $('#utilityAmountInput').prop('required', false).removeAttr('name').val('');
+                        $('input[name="amount"]').val('');
                     }
                 }
             }
 
-            $('#paymentCategorySelect, select[name="billing_month"]').on('change', updateBillingSummaryView);
+            $('#paymentCategorySelect, select[name="billing_month"], select[name="billing_year"]').on('change', updateBillingSummaryView);
 
             // Also call on modal open
             $('#openAddPaymentBtn').on('click', function() {

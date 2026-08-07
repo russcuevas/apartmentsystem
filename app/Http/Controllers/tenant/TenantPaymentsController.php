@@ -43,9 +43,7 @@ class TenantPaymentsController extends Controller
         ])->where('tenant_id', $tenant->id);
 
         if ($selectedYear) {
-            $paymentsQuery->where(function ($q) use ($selectedYear) {
-                $q->whereYear('created_at', $selectedYear);
-            });
+            $paymentsQuery->where('billing_year', (int) $selectedYear);
         }
 
         $allPayments = $paymentsQuery->orderBy('created_at', 'desc')->get();
@@ -87,7 +85,7 @@ class TenantPaymentsController extends Controller
             ];
         });
 
-        // Fetch existing billings to calculate remaining balance per category per month
+        // Fetch existing billings across all years to calculate remaining balance per category per month and year
         $allRentBills = TenantBillingsRent::where('tenant_id', $tenant->id)->get();
         $allElecBills = TenantBillingsElectricity::where('tenant_id', $tenant->id)->get();
         $allWaterBills = TenantBillingsWater::where('tenant_id', $tenant->id)->get();
@@ -95,50 +93,63 @@ class TenantPaymentsController extends Controller
 
         $tenantBillingsSummary = [];
 
-        foreach ($allMonths as $m) {
-            $r = $allRentBills->first(fn($b) => strcasecmp(trim($b->billing_month), trim($m)) === 0);
-            $e = $allElecBills->first(fn($b) => strcasecmp(trim($b->billing_month), trim($m)) === 0);
-            $w = $allWaterBills->first(fn($b) => strcasecmp(trim($b->billing_month), trim($m)) === 0);
+        foreach ($availableYears as $y) {
+            $tenantBillingsSummary[$y] = [];
 
-            $mApprovedPayments = $allTenantPayments->filter(function ($p) use ($m) {
-                return strcasecmp(trim($p->billing_month), trim($m)) === 0
-                    && in_array($p->status, ['Approved', 'Accepted', 'Pending']);
-            });
+            foreach ($allMonths as $m) {
+                $r = $allRentBills->first(function ($b) use ($m, $y) {
+                    return strcasecmp(trim($b->billing_month), trim($m)) === 0 && (int) $b->billing_year === (int) $y;
+                });
 
-            $baseRent = (float) ($r->rent_amount ?? ($tenant->rentInformation->monthly_rental ?? 0));
-            $rentPaid = (float) $mApprovedPayments->filter(fn($p) => strcasecmp(trim($p->payment_type ?? ''), 'Rent') === 0)->sum('amount');
-            $rentBal  = max(0, $baseRent - $rentPaid);
+                $e = $allElecBills->first(function ($b) use ($m, $y) {
+                    return strcasecmp(trim($b->billing_month), trim($m)) === 0 && (int) $b->billing_year === (int) $y;
+                });
 
-            $elecAmount = (float) ($e->rent_amount ?? 0);
-            $elecPaid   = (float) $mApprovedPayments->filter(fn($p) => strcasecmp(trim($p->payment_type ?? ''), 'Electricity') === 0)->sum('amount');
-            $elecBal    = max(0, $elecAmount - $elecPaid);
+                $w = $allWaterBills->first(function ($b) use ($m, $y) {
+                    return strcasecmp(trim($b->billing_month), trim($m)) === 0 && (int) $b->billing_year === (int) $y;
+                });
 
-            $waterAmount = (float) ($w->rent_amount ?? 0);
-            $waterPaid   = (float) $mApprovedPayments->filter(fn($p) => strcasecmp(trim($p->payment_type ?? ''), 'Water') === 0)->sum('amount');
-            $waterBal    = max(0, $waterAmount - $waterPaid);
+                $mApprovedPayments = $allTenantPayments->filter(function ($p) use ($m, $y) {
+                    return strcasecmp(trim($p->billing_month), trim($m)) === 0
+                        && (int) $p->billing_year === (int) $y
+                        && in_array($p->status, ['Approved', 'Accepted', 'Pending']);
+                });
 
-            $tenantBillingsSummary[$m] = [
-                'Monthly Rental' => [
-                    'total_amount'      => $baseRent,
-                    'paid_amount'       => $rentPaid,
-                    'balance'           => $rentBal,
-                    'has_existing_bill' => ($r !== null || $baseRent > 0),
-                ],
-                'Electricity' => [
-                    'total_amount'      => $elecAmount,
-                    'paid_amount'       => $elecPaid,
-                    'balance'           => $elecBal,
-                    'has_existing_bill' => ($e !== null),
-                    'proof_of_billing'  => $e ? $e->proof_of_billing : null,
-                ],
-                'Water' => [
-                    'total_amount'      => $waterAmount,
-                    'paid_amount'       => $waterPaid,
-                    'balance'           => $waterBal,
-                    'has_existing_bill' => ($w !== null),
-                    'proof_of_billing'  => $w ? $w->proof_of_billing : null,
-                ]
-            ];
+                $baseRent = (float) ($r ? $r->rent_amount : 0);
+                $rentPaid = (float) $mApprovedPayments->filter(fn($p) => strcasecmp(trim($p->payment_type ?? ''), 'Rent') === 0)->sum('amount');
+                $rentBal  = max(0, $baseRent - $rentPaid);
+
+                $elecAmount = (float) ($e->rent_amount ?? 0);
+                $elecPaid   = (float) $mApprovedPayments->filter(fn($p) => strcasecmp(trim($p->payment_type ?? ''), 'Electricity') === 0)->sum('amount');
+                $elecBal    = max(0, $elecAmount - $elecPaid);
+
+                $waterAmount = (float) ($w->rent_amount ?? 0);
+                $waterPaid   = (float) $mApprovedPayments->filter(fn($p) => strcasecmp(trim($p->payment_type ?? ''), 'Water') === 0)->sum('amount');
+                $waterBal    = max(0, $waterAmount - $waterPaid);
+
+                $tenantBillingsSummary[$y][$m] = [
+                    'Monthly Rental' => [
+                        'total_amount'      => $baseRent,
+                        'paid_amount'       => $rentPaid,
+                        'balance'           => $rentBal,
+                        'has_existing_bill' => ($r !== null),
+                    ],
+                    'Electricity' => [
+                        'total_amount'      => $elecAmount,
+                        'paid_amount'       => $elecPaid,
+                        'balance'           => $elecBal,
+                        'has_existing_bill' => ($e !== null),
+                        'proof_of_billing'  => $e ? $e->proof_of_billing : null,
+                    ],
+                    'Water' => [
+                        'total_amount'      => $waterAmount,
+                        'paid_amount'       => $waterPaid,
+                        'balance'           => $waterBal,
+                        'has_existing_bill' => ($w !== null),
+                        'proof_of_billing'  => $w ? $w->proof_of_billing : null,
+                    ]
+                ];
+            }
         }
 
         return view('tenants.payments.index', compact(
@@ -164,6 +175,7 @@ class TenantPaymentsController extends Controller
         $request->validate([
             'category'           => 'required|in:Monthly Rental,Electricity,Water',
             'billing_month'      => 'required|string',
+            'billing_year'       => 'nullable|integer|min:2000|max:2100',
             'amount'             => 'required|numeric|min:0.01',
             'type'               => 'required|in:CASH,ECASH',
             'get_fullname'       => 'nullable|string|max:255',
@@ -193,6 +205,7 @@ class TenantPaymentsController extends Controller
 
         $category = $request->category;
         $billingMonth = $request->billing_month;
+        $billingYear = (int) ($request->billing_year ?? date('Y'));
         $amount = (float) $request->amount;
         $type = $request->type;
         $getFullname = ($type === 'CASH') ? $request->get_fullname : null;
@@ -203,6 +216,7 @@ class TenantPaymentsController extends Controller
         $rentBillingId = null;
         $elecBillingId = null;
         $waterBillingId = null;
+        $paymentType = null;
 
         if ($category === 'Monthly Rental') {
             $paymentType = 'Rent';
@@ -211,9 +225,10 @@ class TenantPaymentsController extends Controller
                 [
                     'tenant_id'     => $tenant->id,
                     'billing_month' => $billingMonth,
+                    'billing_year'  => $billingYear,
                 ],
                 [
-                    'due_date'    => date('Y-m-15'),
+                    'due_date'    => date("{$billingYear}-m-15"),
                     'rent_amount' => $amount,
                     'balance'     => $amount,
                     'status'      => 'Unpaid',
@@ -226,17 +241,27 @@ class TenantPaymentsController extends Controller
             // Find existing electricity billing or create
             $elecBilling = TenantBillingsElectricity::where('tenant_id', $tenant->id)
                 ->where('billing_month', $billingMonth)
-                ->first();
+                ->where(function ($q) use ($billingYear) {
+                    $q->where('billing_year', $billingYear)->orWhereNull('billing_year');
+                })->first();
 
             if ($elecBilling) {
+                $updates = [];
                 if ($proofOfBillingPath) {
-                    $elecBilling->update(['proof_of_billing' => $proofOfBillingPath]);
+                    $updates['proof_of_billing'] = $proofOfBillingPath;
+                }
+                if (empty($elecBilling->billing_year)) {
+                    $updates['billing_year'] = $billingYear;
+                }
+                if (!empty($updates)) {
+                    $elecBilling->update($updates);
                 }
             } else {
                 $elecBilling = TenantBillingsElectricity::create([
                     'tenant_id'        => $tenant->id,
                     'billing_month'    => $billingMonth,
-                    'due_date'         => date('Y-m-20'),
+                    'billing_year'     => $billingYear,
+                    'due_date'         => date("{$billingYear}-m-20"),
                     'rent_amount'      => $elecAmount ?? $amount,
                     'balance'          => $elecAmount ?? $amount,
                     'proof_of_billing' => $proofOfBillingPath,
@@ -250,17 +275,27 @@ class TenantPaymentsController extends Controller
             // Find existing water billing or create
             $waterBilling = TenantBillingsWater::where('tenant_id', $tenant->id)
                 ->where('billing_month', $billingMonth)
-                ->first();
+                ->where(function ($q) use ($billingYear) {
+                    $q->where('billing_year', $billingYear)->orWhereNull('billing_year');
+                })->first();
 
             if ($waterBilling) {
+                $updates = [];
                 if ($proofOfBillingPath) {
-                    $waterBilling->update(['proof_of_billing' => $proofOfBillingPath]);
+                    $updates['proof_of_billing'] = $proofOfBillingPath;
+                }
+                if (empty($waterBilling->billing_year)) {
+                    $updates['billing_year'] = $billingYear;
+                }
+                if (!empty($updates)) {
+                    $waterBilling->update($updates);
                 }
             } else {
                 $waterBilling = TenantBillingsWater::create([
                     'tenant_id'        => $tenant->id,
                     'billing_month'    => $billingMonth,
-                    'due_date'         => date('Y-m-25'),
+                    'billing_year'     => $billingYear,
+                    'due_date'         => date("{$billingYear}-m-25"),
                     'rent_amount'      => $waterAmount ?? $amount,
                     'balance'          => $waterAmount ?? $amount,
                     'proof_of_billing' => $proofOfBillingPath,
@@ -281,6 +316,7 @@ class TenantPaymentsController extends Controller
             'electricity_amount'             => $elecAmount,
             'water_amount'                   => $waterAmount,
             'billing_month'                  => $billingMonth,
+            'billing_year'                   => $billingYear,
             'amount'                         => $amount,
             'type'                           => $type,
             'get_fullname'                   => $getFullname,

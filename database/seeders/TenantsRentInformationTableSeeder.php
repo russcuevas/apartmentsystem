@@ -17,6 +17,7 @@ class TenantsRentInformationTableSeeder extends Seeder
             'room' => 'Room 101',
             'monthly_rental' => 8000.50,
             'start_date' => '2026-01-01',
+            'move_out' => false,
         ]);
     }
 }
