@@ -335,14 +335,6 @@
                             <strong id="modalTenantRent"
                                 style="font-size: 1rem; color: var(--primary);">₱0.00</strong>
                         </div>
-                        <div
-                            style="text-align: right; background: #fef2f2; padding: 10px 16px; border-radius: 10px; border: 1px solid #fca5a5;">
-                            <span
-                                style="font-size: 0.72rem; color: #991b1b; font-weight: 700; text-transform: uppercase; display: block;">Total
-                                Cumulative Outstanding</span>
-                            <strong id="modalTenantTotalBalance"
-                                style="font-size: 1.1rem; color: #dc2626;">₱0.00</strong>
-                        </div>
                     </div>
                 </div>
 
@@ -546,7 +538,6 @@
                 $('#modalTenantLocation').text(data.location_name);
                 $('#modalTenantRoom').text(data.room);
                 $('#modalTenantRent').text(`₱${data.monthly_rental}`);
-                $('#modalTenantTotalBalance').text(`₱${data.total_balance}`);
 
                 const rawBal = typeof data.raw_total_balance !== 'undefined'
                     ? parseFloat(data.raw_total_balance)

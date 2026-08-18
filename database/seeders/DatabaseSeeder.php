@@ -15,8 +15,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AdminsTableSeeder::class,
             LocationsTableSeeder::class,
-            TenantsTableSeeder::class,
-            TenantsRentInformationTableSeeder::class,
+            // TenantsTableSeeder::class,
+            // TenantsRentInformationTableSeeder::class,
         ]);
     }
 }
